@@ -1,0 +1,34 @@
+[
+    {
+        "merged": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-debug-4:\\layout_dialog_contact.xml.flat",
+        "source": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-main-6:\\layout\\dialog_contact.xml"
+    },
+    {
+        "merged": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-debug-4:\\layout_item_contact.xml.flat",
+        "source": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-main-6:\\layout\\item_contact.xml"
+    },
+    {
+        "merged": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-debug-4:\\layout_activity_contacts.xml.flat",
+        "source": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-main-6:\\layout\\activity_contacts.xml"
+    },
+    {
+        "merged": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-debug-4:\\layout_activity_settings.xml.flat",
+        "source": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-main-6:\\layout\\activity_settings.xml"
+    },
+    {
+        "merged": "com.safeword.androidApp-debug-4:/layout_activity_main.xml.flat",
+        "source": "com.safeword.androidApp-main-6:/layout/activity_main.xml"
+    },
+    {
+        "merged": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-debug-4:\\layout_activity_safe_word_wizard.xml.flat",
+        "source": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-main-6:\\layout\\activity_safe_word_wizard.xml"
+    },
+    {
+        "merged": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-debug-4:\\layout_activity_main.xml.flat",
+        "source": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-main-6:\\layout\\activity_main.xml"
+    },
+    {
+        "merged": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-debug-4:\\drawable_ic_stat_name.xml.flat",
+        "source": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-main-6:\\drawable\\ic_stat_name.xml"
+    }
+]

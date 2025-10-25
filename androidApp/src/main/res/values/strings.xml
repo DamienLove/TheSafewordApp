@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">SafeWord</string>
+    <string name="listening_on">Listening for safe words</string>
+    <string name="listening_off">Voice listening is off</string>
+    <string name="toggle_listening">Toggle listening</string>
+    <string name="configure_safe_words">Configure Safe Words</string>
+    <string name="settings">Settings</string>
+    <string name="contacts">Contacts</string>
+    <string name="contacts_title">Support Contacts</string>
+    <string name="incoming_mode">Incoming Mode</string>
+    <string name="outgoing_mode">Outgoing Mode</string>
+    <string name="include_location">Include Location</string>
+    <string name="play_siren">Play Siren</string>
+    <string name="test_mode">Test Mode</string>
+    <string name="run_test">Run Test</string>
+    <string name="save">Save</string>
+    <string name="add_contact">Add Contact</string>
+    <string name="edit_contact">Edit Contact</string>
+    <string name="delete_contact">Delete Contact</string>
+    <string name="peer_connected">Peer link active</string>
+    <string name="peer_disconnected">Peer link unavailable</string>
+    <string name="safe_word_detected">Safe word detected</string>
+    <string name="emergency_call">Call Emergency Services</string>
+    <string name="enable_permissions">Enable Permissions</string>
+    <string name="notification_channel_listening">SafeWord Listening</string>
+    <string name="notification_channel_alerts">SafeWord Alerts</string>
+    <string name="notification_channel_peer">SafeWord Bridge</string>
+    <string name="notification_title_listening">Listening for safe words</string>
+    <string name="notification_title_alert">Emergency escalation triggered</string>
+    <string name="notification_title_peer">SafeWord Bridge</string>
+    <string name="open_settings">Open Settings</string>
+    <string name="action_call_contact">Call</string>
+    <string name="action_text_contact">Message</string>
+    <string name="contact_message_body">Hey %1$s, I need to reach you via SafeWord.</string>
+    <string name="contact_action_error">No app found to handle this action.</string>
+    <string name="contact_deleted">Deleted %1$s</string>
+    <plurals name="contacts_count">
+        <item quantity="one">%d contact configured</item>
+        <item quantity="other">%d contacts configured</item>
+    </plurals>
+</resources>
