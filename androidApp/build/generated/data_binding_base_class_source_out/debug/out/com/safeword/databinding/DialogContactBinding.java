@@ -5,10 +5,12 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.safeword.R;
@@ -19,6 +21,9 @@ import java.lang.String;
 public final class DialogContactBinding implements ViewBinding {
   @NonNull
   private final LinearLayout rootView;
+
+  @NonNull
+  public final MaterialButton buttonImport;
 
   @NonNull
   public final TextInputEditText inputEmail;
@@ -38,17 +43,23 @@ public final class DialogContactBinding implements ViewBinding {
   @NonNull
   public final TextInputEditText inputPhone;
 
-  private DialogContactBinding(@NonNull LinearLayout rootView,
+  @NonNull
+  public final TextView textTitle;
+
+  private DialogContactBinding(@NonNull LinearLayout rootView, @NonNull MaterialButton buttonImport,
       @NonNull TextInputEditText inputEmail, @NonNull TextInputLayout inputLayoutEmail,
       @NonNull TextInputLayout inputLayoutName, @NonNull TextInputLayout inputLayoutPhone,
-      @NonNull TextInputEditText inputName, @NonNull TextInputEditText inputPhone) {
+      @NonNull TextInputEditText inputName, @NonNull TextInputEditText inputPhone,
+      @NonNull TextView textTitle) {
     this.rootView = rootView;
+    this.buttonImport = buttonImport;
     this.inputEmail = inputEmail;
     this.inputLayoutEmail = inputLayoutEmail;
     this.inputLayoutName = inputLayoutName;
     this.inputLayoutPhone = inputLayoutPhone;
     this.inputName = inputName;
     this.inputPhone = inputPhone;
+    this.textTitle = textTitle;
   }
 
   @Override
@@ -78,6 +89,12 @@ public final class DialogContactBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
+      id = R.id.button_import;
+      MaterialButton buttonImport = ViewBindings.findChildViewById(rootView, id);
+      if (buttonImport == null) {
+        break missingId;
+      }
+
       id = R.id.input_email;
       TextInputEditText inputEmail = ViewBindings.findChildViewById(rootView, id);
       if (inputEmail == null) {
@@ -114,8 +131,14 @@ public final class DialogContactBinding implements ViewBinding {
         break missingId;
       }
 
-      return new DialogContactBinding((LinearLayout) rootView, inputEmail, inputLayoutEmail,
-          inputLayoutName, inputLayoutPhone, inputName, inputPhone);
+      id = R.id.text_title;
+      TextView textTitle = ViewBindings.findChildViewById(rootView, id);
+      if (textTitle == null) {
+        break missingId;
+      }
+
+      return new DialogContactBinding((LinearLayout) rootView, buttonImport, inputEmail,
+          inputLayoutEmail, inputLayoutName, inputLayoutPhone, inputName, inputPhone, textTitle);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

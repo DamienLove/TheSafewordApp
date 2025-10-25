@@ -12,6 +12,8 @@ import androidx.viewbinding.ViewBinding;
 import androidx.viewbinding.ViewBindings;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.button.MaterialButtonToggleGroup;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.materialswitch.MaterialSwitch;
 import com.safeword.R;
 import java.lang.NullPointerException;
@@ -23,42 +25,87 @@ public final class ActivityMainBinding implements ViewBinding {
   private final ScrollView rootView;
 
   @NonNull
-  public final MaterialButton buttonContacts;
+  public final MaterialButton buttonModeIncoming;
 
   @NonNull
-  public final MaterialButton buttonSafeWords;
+  public final MaterialButton buttonModeOutgoing;
 
   @NonNull
-  public final MaterialButton buttonSettings;
+  public final MaterialCardView cardContacts;
+
+  @NonNull
+  public final MaterialCardView cardListening;
+
+  @NonNull
+  public final MaterialCardView cardSafeWords;
+
+  @NonNull
+  public final MaterialCardView cardSettings;
+
+  @NonNull
+  public final MaterialCardView cardStatus;
+
+  @NonNull
+  public final MaterialButtonToggleGroup modeToggleGroup;
 
   @NonNull
   public final MaterialSwitch switchListening;
 
   @NonNull
-  public final MaterialSwitch switchMode;
+  public final TextView textContacts;
 
   @NonNull
-  public final TextView textContacts;
+  public final TextView textContactsLabel;
+
+  @NonNull
+  public final TextView textHeadline;
+
+  @NonNull
+  public final TextView textListeningStatus;
+
+  @NonNull
+  public final TextView textListeningSubtitle;
+
+  @NonNull
+  public final TextView textModeLabel;
 
   @NonNull
   public final TextView textPeerState;
 
   @NonNull
+  public final TextView textPeerStateLabel;
+
+  @NonNull
   public final MaterialToolbar toolbar;
 
-  private ActivityMainBinding(@NonNull ScrollView rootView, @NonNull MaterialButton buttonContacts,
-      @NonNull MaterialButton buttonSafeWords, @NonNull MaterialButton buttonSettings,
-      @NonNull MaterialSwitch switchListening, @NonNull MaterialSwitch switchMode,
-      @NonNull TextView textContacts, @NonNull TextView textPeerState,
-      @NonNull MaterialToolbar toolbar) {
+  private ActivityMainBinding(@NonNull ScrollView rootView,
+      @NonNull MaterialButton buttonModeIncoming, @NonNull MaterialButton buttonModeOutgoing,
+      @NonNull MaterialCardView cardContacts, @NonNull MaterialCardView cardListening,
+      @NonNull MaterialCardView cardSafeWords, @NonNull MaterialCardView cardSettings,
+      @NonNull MaterialCardView cardStatus, @NonNull MaterialButtonToggleGroup modeToggleGroup,
+      @NonNull MaterialSwitch switchListening, @NonNull TextView textContacts,
+      @NonNull TextView textContactsLabel, @NonNull TextView textHeadline,
+      @NonNull TextView textListeningStatus, @NonNull TextView textListeningSubtitle,
+      @NonNull TextView textModeLabel, @NonNull TextView textPeerState,
+      @NonNull TextView textPeerStateLabel, @NonNull MaterialToolbar toolbar) {
     this.rootView = rootView;
-    this.buttonContacts = buttonContacts;
-    this.buttonSafeWords = buttonSafeWords;
-    this.buttonSettings = buttonSettings;
+    this.buttonModeIncoming = buttonModeIncoming;
+    this.buttonModeOutgoing = buttonModeOutgoing;
+    this.cardContacts = cardContacts;
+    this.cardListening = cardListening;
+    this.cardSafeWords = cardSafeWords;
+    this.cardSettings = cardSettings;
+    this.cardStatus = cardStatus;
+    this.modeToggleGroup = modeToggleGroup;
     this.switchListening = switchListening;
-    this.switchMode = switchMode;
     this.textContacts = textContacts;
+    this.textContactsLabel = textContactsLabel;
+    this.textHeadline = textHeadline;
+    this.textListeningStatus = textListeningStatus;
+    this.textListeningSubtitle = textListeningSubtitle;
+    this.textModeLabel = textModeLabel;
     this.textPeerState = textPeerState;
+    this.textPeerStateLabel = textPeerStateLabel;
     this.toolbar = toolbar;
   }
 
@@ -89,21 +136,51 @@ public final class ActivityMainBinding implements ViewBinding {
     // This is done to optimize the compiled bytecode for size and performance.
     int id;
     missingId: {
-      id = R.id.button_contacts;
-      MaterialButton buttonContacts = ViewBindings.findChildViewById(rootView, id);
-      if (buttonContacts == null) {
+      id = R.id.button_mode_incoming;
+      MaterialButton buttonModeIncoming = ViewBindings.findChildViewById(rootView, id);
+      if (buttonModeIncoming == null) {
         break missingId;
       }
 
-      id = R.id.button_safe_words;
-      MaterialButton buttonSafeWords = ViewBindings.findChildViewById(rootView, id);
-      if (buttonSafeWords == null) {
+      id = R.id.button_mode_outgoing;
+      MaterialButton buttonModeOutgoing = ViewBindings.findChildViewById(rootView, id);
+      if (buttonModeOutgoing == null) {
         break missingId;
       }
 
-      id = R.id.button_settings;
-      MaterialButton buttonSettings = ViewBindings.findChildViewById(rootView, id);
-      if (buttonSettings == null) {
+      id = R.id.card_contacts;
+      MaterialCardView cardContacts = ViewBindings.findChildViewById(rootView, id);
+      if (cardContacts == null) {
+        break missingId;
+      }
+
+      id = R.id.card_listening;
+      MaterialCardView cardListening = ViewBindings.findChildViewById(rootView, id);
+      if (cardListening == null) {
+        break missingId;
+      }
+
+      id = R.id.card_safe_words;
+      MaterialCardView cardSafeWords = ViewBindings.findChildViewById(rootView, id);
+      if (cardSafeWords == null) {
+        break missingId;
+      }
+
+      id = R.id.card_settings;
+      MaterialCardView cardSettings = ViewBindings.findChildViewById(rootView, id);
+      if (cardSettings == null) {
+        break missingId;
+      }
+
+      id = R.id.card_status;
+      MaterialCardView cardStatus = ViewBindings.findChildViewById(rootView, id);
+      if (cardStatus == null) {
+        break missingId;
+      }
+
+      id = R.id.mode_toggle_group;
+      MaterialButtonToggleGroup modeToggleGroup = ViewBindings.findChildViewById(rootView, id);
+      if (modeToggleGroup == null) {
         break missingId;
       }
 
@@ -113,15 +190,39 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
-      id = R.id.switch_mode;
-      MaterialSwitch switchMode = ViewBindings.findChildViewById(rootView, id);
-      if (switchMode == null) {
-        break missingId;
-      }
-
       id = R.id.text_contacts;
       TextView textContacts = ViewBindings.findChildViewById(rootView, id);
       if (textContacts == null) {
+        break missingId;
+      }
+
+      id = R.id.text_contacts_label;
+      TextView textContactsLabel = ViewBindings.findChildViewById(rootView, id);
+      if (textContactsLabel == null) {
+        break missingId;
+      }
+
+      id = R.id.text_headline;
+      TextView textHeadline = ViewBindings.findChildViewById(rootView, id);
+      if (textHeadline == null) {
+        break missingId;
+      }
+
+      id = R.id.text_listening_status;
+      TextView textListeningStatus = ViewBindings.findChildViewById(rootView, id);
+      if (textListeningStatus == null) {
+        break missingId;
+      }
+
+      id = R.id.text_listening_subtitle;
+      TextView textListeningSubtitle = ViewBindings.findChildViewById(rootView, id);
+      if (textListeningSubtitle == null) {
+        break missingId;
+      }
+
+      id = R.id.text_mode_label;
+      TextView textModeLabel = ViewBindings.findChildViewById(rootView, id);
+      if (textModeLabel == null) {
         break missingId;
       }
 
@@ -131,14 +232,22 @@ public final class ActivityMainBinding implements ViewBinding {
         break missingId;
       }
 
+      id = R.id.text_peer_state_label;
+      TextView textPeerStateLabel = ViewBindings.findChildViewById(rootView, id);
+      if (textPeerStateLabel == null) {
+        break missingId;
+      }
+
       id = R.id.toolbar;
       MaterialToolbar toolbar = ViewBindings.findChildViewById(rootView, id);
       if (toolbar == null) {
         break missingId;
       }
 
-      return new ActivityMainBinding((ScrollView) rootView, buttonContacts, buttonSafeWords,
-          buttonSettings, switchListening, switchMode, textContacts, textPeerState, toolbar);
+      return new ActivityMainBinding((ScrollView) rootView, buttonModeIncoming, buttonModeOutgoing,
+          cardContacts, cardListening, cardSafeWords, cardSettings, cardStatus, modeToggleGroup,
+          switchListening, textContacts, textContactsLabel, textHeadline, textListeningStatus,
+          textListeningSubtitle, textModeLabel, textPeerState, textPeerStateLabel, toolbar);
     }
     String missingId = rootView.getResources().getResourceName(id);
     throw new NullPointerException("Missing required view with ID: ".concat(missingId));

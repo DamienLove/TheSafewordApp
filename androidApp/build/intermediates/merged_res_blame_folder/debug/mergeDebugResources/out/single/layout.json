@@ -1,30 +1,26 @@
 [
     {
-        "merged": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-mergeDebugResources-3:\\layout\\activity_settings.xml",
-        "source": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-main-6:\\layout\\activity_settings.xml"
+        "merged": "com.safeword.androidApp-mergeDebugResources-3:/layout/dialog_contact.xml",
+        "source": "com.safeword.androidApp-main-6:/layout/dialog_contact.xml"
     },
     {
         "merged": "com.safeword.androidApp-mergeDebugResources-3:/layout/activity_main.xml",
         "source": "com.safeword.androidApp-main-6:/layout/activity_main.xml"
     },
     {
-        "merged": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-mergeDebugResources-3:\\layout\\activity_safe_word_wizard.xml",
-        "source": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-main-6:\\layout\\activity_safe_word_wizard.xml"
+        "merged": "com.safeword.androidApp-mergeDebugResources-3:/layout/activity_safe_word_wizard.xml",
+        "source": "com.safeword.androidApp-main-6:/layout/activity_safe_word_wizard.xml"
     },
     {
-        "merged": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-mergeDebugResources-3:\\layout\\activity_main.xml",
-        "source": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-main-6:\\layout\\activity_main.xml"
+        "merged": "com.safeword.androidApp-mergeDebugResources-3:/layout/activity_contacts.xml",
+        "source": "com.safeword.androidApp-main-6:/layout/activity_contacts.xml"
     },
     {
-        "merged": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-mergeDebugResources-3:\\layout\\activity_contacts.xml",
-        "source": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-main-6:\\layout\\activity_contacts.xml"
+        "merged": "com.safeword.androidApp-mergeDebugResources-3:/layout/item_contact.xml",
+        "source": "com.safeword.androidApp-main-6:/layout/item_contact.xml"
     },
     {
-        "merged": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-mergeDebugResources-3:\\layout\\dialog_contact.xml",
-        "source": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-main-6:\\layout\\dialog_contact.xml"
-    },
-    {
-        "merged": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-mergeDebugResources-3:\\layout\\item_contact.xml",
-        "source": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-main-6:\\layout\\item_contact.xml"
+        "merged": "com.safeword.androidApp-mergeDebugResources-3:/layout/activity_settings.xml",
+        "source": "com.safeword.androidApp-main-6:/layout/activity_settings.xml"
     }
 ]
