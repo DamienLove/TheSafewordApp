@@ -1,34 +1,70 @@
 [
     {
-        "merged": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-debug-4:\\layout_dialog_contact.xml.flat",
-        "source": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-main-6:\\layout\\dialog_contact.xml"
+        "merged": "com.safeword.androidApp-debug-4:/drawable_ic_logo_safeword.png.flat",
+        "source": "com.safeword.androidApp-main-6:/drawable/ic_logo_safeword.png"
     },
     {
-        "merged": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-debug-4:\\layout_item_contact.xml.flat",
-        "source": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-main-6:\\layout\\item_contact.xml"
+        "merged": "com.safeword.androidApp-debug-4:/layout_item_contact.xml.flat",
+        "source": "com.safeword.androidApp-main-6:/layout/item_contact.xml"
     },
     {
-        "merged": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-debug-4:\\layout_activity_contacts.xml.flat",
-        "source": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-main-6:\\layout\\activity_contacts.xml"
+        "merged": "com.safeword.androidApp-debug-4:/drawable_bg_card_option.xml.flat",
+        "source": "com.safeword.androidApp-main-6:/drawable/bg_card_option.xml"
     },
     {
-        "merged": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-debug-4:\\layout_activity_settings.xml.flat",
-        "source": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-main-6:\\layout\\activity_settings.xml"
+        "merged": "com.safeword.androidApp-debug-4:/drawable_bg_contact_card.xml.flat",
+        "source": "com.safeword.androidApp-main-6:/drawable/bg_contact_card.xml"
+    },
+    {
+        "merged": "com.safeword.androidApp-debug-4:/drawable_ic_stat_name.xml.flat",
+        "source": "com.safeword.androidApp-main-6:/drawable/ic_stat_name.xml"
+    },
+    {
+        "merged": "com.safeword.androidApp-debug-4:/layout_dialog_contact.xml.flat",
+        "source": "com.safeword.androidApp-main-6:/layout/dialog_contact.xml"
+    },
+    {
+        "merged": "com.safeword.androidApp-debug-4:/drawable_bg_app.xml.flat",
+        "source": "com.safeword.androidApp-main-6:/drawable/bg_app.xml"
+    },
+    {
+        "merged": "com.safeword.androidApp-debug-4:/drawable_ic_contacts.xml.flat",
+        "source": "com.safeword.androidApp-main-6:/drawable/ic_contacts.xml"
+    },
+    {
+        "merged": "com.safeword.androidApp-debug-4:/drawable_ic_settings.xml.flat",
+        "source": "com.safeword.androidApp-main-6:/drawable/ic_settings.xml"
+    },
+    {
+        "merged": "com.safeword.androidApp-debug-4:/layout_activity_safe_word_wizard.xml.flat",
+        "source": "com.safeword.androidApp-main-6:/layout/activity_safe_word_wizard.xml"
     },
     {
         "merged": "com.safeword.androidApp-debug-4:/layout_activity_main.xml.flat",
         "source": "com.safeword.androidApp-main-6:/layout/activity_main.xml"
     },
     {
-        "merged": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-debug-4:\\layout_activity_safe_word_wizard.xml.flat",
-        "source": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-main-6:\\layout\\activity_safe_word_wizard.xml"
+        "merged": "com.safeword.androidApp-debug-4:/drawable_bg_card_listening.xml.flat",
+        "source": "com.safeword.androidApp-main-6:/drawable/bg_card_listening.xml"
     },
     {
-        "merged": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-debug-4:\\layout_activity_main.xml.flat",
-        "source": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-main-6:\\layout\\activity_main.xml"
+        "merged": "com.safeword.androidApp-debug-4:/drawable_ic_message.xml.flat",
+        "source": "com.safeword.androidApp-main-6:/drawable/ic_message.xml"
     },
     {
-        "merged": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-debug-4:\\drawable_ic_stat_name.xml.flat",
-        "source": "C:\\Users\\me\\.gradle\\daemon\\8.6\\com.safeword.androidApp-main-6:\\drawable\\ic_stat_name.xml"
+        "merged": "com.safeword.androidApp-debug-4:/drawable_bg_card_status.xml.flat",
+        "source": "com.safeword.androidApp-main-6:/drawable/bg_card_status.xml"
+    },
+    {
+        "merged": "com.safeword.androidApp-debug-4:/layout_activity_contacts.xml.flat",
+        "source": "com.safeword.androidApp-main-6:/layout/activity_contacts.xml"
+    },
+    {
+        "merged": "com.safeword.androidApp-debug-4:/layout_activity_settings.xml.flat",
+        "source": "com.safeword.androidApp-main-6:/layout/activity_settings.xml"
+    },
+    {
+        "merged": "com.safeword.androidApp-debug-4:/drawable_ic_call.xml.flat",
+        "source": "com.safeword.androidApp-main-6:/drawable/ic_call.xml"
     }
 ]

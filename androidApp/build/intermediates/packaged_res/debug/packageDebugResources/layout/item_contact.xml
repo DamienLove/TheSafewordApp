@@ -5,17 +5,20 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
+    android:clickable="true"
+    android:focusable="true"
     android:foreground="?attr/selectableItemBackground"
-    app:cardElevation="4dp"
-    app:cardUseCompatPadding="true"
-    app:strokeColor="@color/safeword_primary"
-    app:strokeWidth="1dp">
+    app:cardBackgroundColor="@android:color/transparent"
+    app:cardElevation="0dp"
+    app:cardUseCompatPadding="false"
+    app:strokeColor="@android:color/transparent">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@drawable/bg_contact_card"
         android:orientation="vertical"
-        android:padding="16dp">
+        android:padding="20dp">
 
         <TextView
             android:id="@+id/text_name"
@@ -23,6 +26,7 @@
             android:layout_height="wrap_content"
             android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
             android:textStyle="bold"
+            android:textColor="@color/safeword_on_surface"
             tools:text="Jane Doe" />
 
         <TextView
@@ -31,6 +35,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+            android:textColor="@color/safeword_on_surface_variant"
             tools:text="+1 (555) 867-5309" />
 
         <TextView
@@ -39,6 +44,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
             android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+            android:textColor="@color/safeword_on_surface_variant"
             android:visibility="gone"
             tools:text="jane@example.com" />
 
@@ -57,7 +63,11 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:minWidth="0dp"
-                android:text="@string/action_call_contact" />
+                android:text="@string/action_call_contact"
+                app:icon="@drawable/ic_call"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"
+                app:iconTint="@android:color/white" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/button_message"
@@ -65,7 +75,11 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:minWidth="0dp"
-                android:text="@string/action_text_contact" />
+                android:text="@string/action_text_contact"
+                app:icon="@drawable/ic_message"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"
+                app:iconTint="@color/safeword_on_surface" />
         </LinearLayout>
     </LinearLayout>
 

@@ -26,6 +26,7 @@ class MainActivity : AppCompatActivity() {
 
     private val viewModel: MainViewModel by viewModels()
     private lateinit var binding: ActivityMainBinding
+    private var updatingModeSelection = false
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -51,20 +52,21 @@ class MainActivity : AppCompatActivity() {
             if (isChecked) ensureVoicePermission() else VoiceRecognitionService.stop(this)
         }
 
-        binding.switchMode.setOnCheckedChangeListener { _, isChecked ->
-            viewModel.setModeIncoming(isChecked)
-            binding.switchMode.text = if (isChecked) getString(R.string.incoming_mode) else getString(R.string.outgoing_mode)
+        binding.modeToggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
+            if (!isChecked || updatingModeSelection) return@addOnButtonCheckedListener
+            val incoming = checkedId == binding.buttonModeIncoming.id
+            viewModel.setModeIncoming(incoming)
         }
 
-        binding.buttonSettings.setOnClickListener {
+        binding.cardSettings.setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
 
-        binding.buttonContacts.setOnClickListener {
+        binding.cardContacts.setOnClickListener {
             startActivity(Intent(this, ContactsActivity::class.java))
         }
 
-        binding.buttonSafeWords.setOnClickListener {
+        binding.cardSafeWords.setOnClickListener {
             startActivity(Intent(this, SafeWordWizardActivity::class.java))
         }
 
@@ -83,8 +85,25 @@ class MainActivity : AppCompatActivity() {
         if (binding.switchListening.isChecked != state.listeningEnabled) {
             binding.switchListening.isChecked = state.listeningEnabled
         }
-        binding.switchMode.isChecked = state.incomingMode
-        binding.switchMode.text = if (state.incomingMode) getString(R.string.incoming_mode) else getString(R.string.outgoing_mode)
+        binding.textListeningStatus.text = if (state.listeningEnabled) {
+            binding.switchListening.text = getString(R.string.main_listening_active)
+            getString(R.string.main_listening_active)
+        } else {
+            binding.switchListening.text = getString(R.string.main_listening_inactive)
+            getString(R.string.main_listening_inactive)
+        }
+        binding.textListeningSubtitle.text = if (state.listeningEnabled) {
+            getString(R.string.main_listening_subtitle_on)
+        } else {
+            getString(R.string.main_listening_subtitle_off)
+        }
+        updatingModeSelection = true
+        if (state.incomingMode) {
+            binding.modeToggleGroup.check(binding.buttonModeIncoming.id)
+        } else {
+            binding.modeToggleGroup.check(binding.buttonModeOutgoing.id)
+        }
+        updatingModeSelection = false
         binding.textContacts.text = resources.getQuantityString(R.plurals.contacts_count, state.contacts, state.contacts)
         binding.textPeerState.text = when (state.peerState) {
             is com.safeword.shared.bridge.model.PeerBridgeState.Connected -> getString(R.string.peer_connected)

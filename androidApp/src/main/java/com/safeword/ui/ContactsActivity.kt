@@ -65,9 +65,16 @@ class ContactsActivity : AppCompatActivity() {
         dialogBinding.inputName.setText(existing?.name.orEmpty())
         dialogBinding.inputPhone.setText(existing?.phone.orEmpty())
         dialogBinding.inputEmail.setText(existing?.email.orEmpty())
+        dialogBinding.textTitle.text = if (existing == null) {
+            getString(R.string.add_contact)
+        } else {
+            getString(R.string.edit_contact)
+        }
+        dialogBinding.buttonImport.setOnClickListener {
+            Snackbar.make(binding.root, R.string.contact_import_coming_soon, Snackbar.LENGTH_SHORT).show()
+        }
 
         AlertDialog.Builder(this)
-            .setTitle(if (existing == null) getString(R.string.add_contact) else getString(R.string.edit_contact))
             .setView(dialogBinding.root)
             .setPositiveButton(R.string.save) { dialog, _ ->
                 val name = dialogBinding.inputName.text?.toString().orEmpty()
