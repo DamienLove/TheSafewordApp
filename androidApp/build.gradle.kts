@@ -20,6 +20,28 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    flavorDimensions += "edition"
+    productFlavors {
+        create("free") {
+            dimension = "edition"
+            applicationIdSuffix = ".free"
+            versionNameSuffix = "-free"
+            buildConfigField("boolean", "FEATURE_ADS_ENABLED", "true")
+            buildConfigField("boolean", "FEATURE_INCOMING_SMS", "false")
+            buildConfigField("long", "RINGER_RESTORE_DELAY_MINUTES", "10L")
+            buildConfigField("int", "CONTACT_LIMIT", "3")
+        }
+        create("pro") {
+            dimension = "edition"
+            applicationIdSuffix = ".pro"
+            versionNameSuffix = "-pro"
+            buildConfigField("boolean", "FEATURE_ADS_ENABLED", "false")
+            buildConfigField("boolean", "FEATURE_INCOMING_SMS", "true")
+            buildConfigField("long", "RINGER_RESTORE_DELAY_MINUTES", "5L")
+            buildConfigField("int", "CONTACT_LIMIT", "-1")
+        }
+    }
+
     buildTypes {
         getByName("debug") {
             applicationIdSuffix = ".debug"
@@ -71,6 +93,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.accompanist.permissions)
     implementation(libs.play.services.location)
+    implementation("com.google.android.gms:play-services-ads:23.2.0")
 
     // Optional networking/logging for peer bridge
     implementation(libs.ktor.client.core)

@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_app"
-    android:padding="20dp">
+    android:padding="24dp">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -18,115 +18,225 @@
             android:background="@android:color/transparent"
             android:contentInsetStartWithNavigation="0dp"
             android:elevation="0dp"
-            android:paddingStart="4dp"
-            android:paddingEnd="4dp"
-            app:logo="@drawable/ic_logo_safeword"
+            app:navigationIcon="@drawable/ic_menu"
             app:title="@string/app_name"
+            app:titleCentered="true"
             app:titleTextColor="@color/safeword_on_surface" />
-
-        <TextView
-            android:id="@+id/text_headline"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:text="@string/main_headline"
-            android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
-            android:textColor="@color/safeword_on_surface" />
 
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/card_listening"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
+            android:layout_marginTop="24dp"
             app:cardBackgroundColor="@android:color/transparent"
+            app:cardCornerRadius="40dp"
             app:cardElevation="0dp"
             app:strokeColor="@android:color/transparent">
 
-            <LinearLayout
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_card_listening"
-                android:orientation="vertical"
-                android:padding="24dp">
+                android:padding="28dp">
 
-                <TextView
-                    android:id="@+id/text_listening_status"
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="200dp"
+                    android:layout_gravity="top"
+                    android:layout_marginStart="-40dp"
+                    android:layout_marginTop="-80dp"
+                    android:background="@drawable/bg_listening_overlay" />
+
+                <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="@string/main_listening_active"
-                    android:textAppearance="@style/TextAppearance.Material3.TitleLarge"
-                    android:textColor="@color/safeword_on_primary" />
+                    android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/text_listening_subtitle"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:text="@string/main_listening_subtitle_on"
-                    android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
-                    android:textColor="@color/safeword_on_primary" />
-
-                <com.google.android.material.materialswitch.MaterialSwitch
-                    android:id="@+id/switch_listening"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:text="@string/toggle_listening"
-                    android:textColor="@color/safeword_on_primary" />
-
-                <TextView
-                    android:id="@+id/text_mode_label"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
-                    android:text="@string/main_mode_label"
-                    android:textAppearance="@style/TextAppearance.Material3.LabelLarge"
-                    android:textColor="@color/safeword_on_primary" />
-
-                <com.google.android.material.button.MaterialButtonToggleGroup
-                    android:id="@+id/mode_toggle_group"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    app:checkedButton="@id/button_mode_incoming"
-                    app:selectionRequired="true"
-                    app:singleSelection="true">
-
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/button_mode_incoming"
-                        style="@style/Widget.Material3.Button.TonalButton"
-                        android:layout_width="0dp"
+                    <TextView
+                        android:id="@+id/text_listening_status"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginEnd="8dp"
-                        android:layout_weight="1"
-                        android:text="@string/incoming_mode" />
+                        android:text="@string/main_listening_active"
+                        android:textAppearance="@style/TextAppearance.Material3.HeadlineSmall"
+                        android:textColor="@color/safeword_on_primary" />
 
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/button_mode_outgoing"
-                        style="@style/Widget.Material3.Button.TonalButton"
-                        android:layout_width="0dp"
+                    <TextView
+                        android:id="@+id/text_listening_subtitle"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="@string/outgoing_mode" />
-                </com.google.android.material.button.MaterialButtonToggleGroup>
-            </LinearLayout>
+                        android:layout_marginTop="6dp"
+                        android:text="@string/main_listening_subtitle_on"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                        android:textColor="@color/safeword_on_primary" />
+
+                    <com.google.android.material.materialswitch.MaterialSwitch
+                        android:id="@+id/switch_listening"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="24dp"
+                        android:text="@string/toggle_listening"
+                        android:textColor="@color/safeword_on_primary" />
+
+                    <com.google.android.material.button.MaterialButtonToggleGroup
+                        android:id="@+id/mode_toggle_group"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="28dp"
+                        android:gravity="center"
+                        app:checkedButton="@id/button_mode_incoming"
+                        app:selectionRequired="true"
+                        app:singleSelection="true">
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/button_mode_incoming"
+                            style="@style/Widget.Material3.Button.TonalButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="12dp"
+                            android:layout_weight="1"
+                            android:text="@string/incoming_mode"
+                            android:textAllCaps="false" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/button_mode_outgoing"
+                            style="@style/Widget.Material3.Button.TonalButton"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/outgoing_mode"
+                            android:textAllCaps="false" />
+                    </com.google.android.material.button.MaterialButtonToggleGroup>
+                </LinearLayout>
+            </FrameLayout>
         </com.google.android.material.card.MaterialCardView>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:orientation="horizontal">
+            android:layout_marginTop="28dp"
+            android:orientation="vertical">
 
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/card_safe_words"
-                android:layout_width="0dp"
+                android:id="@+id/card_settings"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
+                android:layout_marginBottom="20dp"
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackground"
                 app:cardBackgroundColor="@android:color/transparent"
+                app:cardCornerRadius="32dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@android:color/transparent">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_card_option_green"
+                    android:padding="24dp">
+
+                    <ImageView
+                        android:id="@+id/icon_settings"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_alignParentStart="true"
+                        android:src="@drawable/ic_settings"
+                        android:tint="@android:color/white" />
+
+                    <TextView
+                        android:id="@+id/text_settings_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/icon_settings"
+                        android:layout_marginTop="12dp"
+                        android:text="@string/settings"
+                        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                        android:textColor="@android:color/white" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/text_settings_title"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/main_action_settings_subtitle"
+                        android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                        android:textColor="#CCFFFFFF" />
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:src="@drawable/ic_chevron_right"
+                        android:tint="@android:color/white" />
+                </RelativeLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_contacts"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardCornerRadius="32dp"
+                app:cardElevation="0dp"
+                app:strokeColor="@android:color/transparent">
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/bg_card_option_purple"
+                    android:padding="24dp">
+
+                    <ImageView
+                        android:id="@+id/icon_contacts"
+                        android:layout_width="32dp"
+                        android:layout_height="32dp"
+                        android:layout_alignParentStart="true"
+                        android:src="@drawable/ic_contacts"
+                        android:tint="@android:color/white" />
+
+                    <TextView
+                        android:id="@+id/text_contacts_title"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/icon_contacts"
+                        android:layout_marginTop="12dp"
+                        android:text="@string/contacts"
+                        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
+                        android:textColor="@android:color/white" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@id/text_contacts_title"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/main_action_contacts_subtitle"
+                        android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                        android:textColor="#CCFFFFFF" />
+
+                    <ImageView
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:src="@drawable/ic_chevron_right"
+                        android:tint="@android:color/white" />
+                </RelativeLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/card_safe_words"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?attr/selectableItemBackground"
+                app:cardBackgroundColor="@android:color/transparent"
+                app:cardCornerRadius="32dp"
                 app:cardElevation="0dp"
                 app:strokeColor="@android:color/transparent">
 
@@ -135,13 +245,13 @@
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_card_option"
                     android:orientation="vertical"
-                    android:padding="20dp">
+                    android:padding="24dp">
 
                     <ImageView
                         android:layout_width="32dp"
                         android:layout_height="32dp"
                         android:src="@drawable/ic_logo_safeword"
-                        android:tint="@color/safeword_on_primary" />
+                        android:tint="@android:color/white" />
 
                     <TextView
                         android:layout_width="match_parent"
@@ -149,75 +259,27 @@
                         android:layout_marginTop="12dp"
                         android:text="@string/main_action_safe_words_title"
                         android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                        android:textColor="@color/safeword_on_primary" />
+                        android:textColor="@android:color/white" />
 
                     <TextView
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
+                        android:layout_marginTop="8dp"
                         android:text="@string/main_action_safe_words_subtitle"
                         android:textAppearance="@style/TextAppearance.Material3.BodySmall"
-                        android:textColor="@color/safeword_on_primary" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <Space
-                android:layout_width="16dp"
-                android:layout_height="0dp" />
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/card_contacts"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:clickable="true"
-                android:focusable="true"
-                android:foreground="?attr/selectableItemBackground"
-                app:cardBackgroundColor="@android:color/transparent"
-                app:cardElevation="0dp"
-                app:strokeColor="@android:color/transparent">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_card_option"
-                    android:orientation="vertical"
-                    android:padding="20dp">
-
-                    <ImageView
-                        android:layout_width="32dp"
-                        android:layout_height="32dp"
-                        android:src="@drawable/ic_contacts"
-                        android:tint="@color/safeword_on_primary" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="12dp"
-                        android:text="@string/main_action_contacts_title"
-                        android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                        android:textColor="@color/safeword_on_primary" />
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="@string/main_action_contacts_subtitle"
-                        android:textAppearance="@style/TextAppearance.Material3.BodySmall"
-                        android:textColor="@color/safeword_on_primary" />
+                        android:textColor="#CCFFFFFF" />
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
         </LinearLayout>
 
         <com.google.android.material.card.MaterialCardView
-            android:id="@+id/card_settings"
+            android:id="@+id/card_status"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:foreground="?attr/selectableItemBackground"
+            android:layout_marginTop="28dp"
+            android:layout_marginBottom="40dp"
             app:cardBackgroundColor="@android:color/transparent"
+            app:cardCornerRadius="32dp"
             app:cardElevation="0dp"
             app:strokeColor="@android:color/transparent">
 
@@ -225,47 +287,6 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_card_option"
-                android:orientation="vertical"
-                android:padding="20dp">
-
-                <ImageView
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
-                    android:src="@drawable/ic_settings"
-                    android:tint="@color/safeword_on_primary" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="12dp"
-                    android:text="@string/main_action_settings_title"
-                    android:textAppearance="@style/TextAppearance.Material3.TitleMedium"
-                    android:textColor="@color/safeword_on_primary" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="4dp"
-                    android:text="@string/main_action_settings_subtitle"
-                    android:textAppearance="@style/TextAppearance.Material3.BodySmall"
-                    android:textColor="@color/safeword_on_primary" />
-            </LinearLayout>
-        </com.google.android.material.card.MaterialCardView>
-
-        <com.google.android.material.card.MaterialCardView
-            android:id="@+id/card_status"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:layout_marginBottom="40dp"
-            app:cardBackgroundColor="@android:color/transparent"
-            app:cardElevation="0dp"
-            app:strokeColor="@android:color/transparent">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/bg_card_status"
                 android:orientation="vertical"
                 android:padding="24dp">
 
@@ -290,7 +311,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:layout_marginTop="20dp"
-                    android:background="#24293D" />
+                    android:background="#1F273C" />
 
                 <TextView
                     android:id="@+id/text_contacts_label"
@@ -310,5 +331,12 @@
                     android:textColor="@color/safeword_on_surface" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
+
+        <FrameLayout
+            android:id="@+id/native_ad_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:visibility="gone" />
     </LinearLayout>
 </ScrollView>
