@@ -9,6 +9,7 @@ import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
 import java.util.concurrent.TimeUnit
+import com.safeword.BuildConfig
 
 class RingerManager(private val context: Context) {
     private val audioManager: AudioManager? = context.getSystemService()
@@ -53,8 +54,9 @@ class RingerManager(private val context: Context) {
     }
 
     private fun scheduleRestore() {
+        val delayMinutes = BuildConfig.RINGER_RESTORE_DELAY_MINUTES.coerceAtLeast(1L)
         val request = OneTimeWorkRequestBuilder<RestoreRingerWorker>()
-            .setInitialDelay(RESTORE_DELAY_MINUTES, TimeUnit.MINUTES)
+            .setInitialDelay(delayMinutes, TimeUnit.MINUTES)
             .build()
         WorkManager.getInstance(context).enqueueUniqueWork(
             RESTORE_WORK_NAME,
@@ -71,6 +73,5 @@ class RingerManager(private val context: Context) {
         const val KEY_RINGER_MODE = "ringer_mode"
         const val KEY_INTERRUPT_FILTER = "interrupt_filter"
         internal const val RESTORE_WORK_NAME = "restore_ringer_work"
-        internal const val RESTORE_DELAY_MINUTES = 10L
     }
 }
