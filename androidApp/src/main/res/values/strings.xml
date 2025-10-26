@@ -63,8 +63,9 @@
     <string name="contact_import_cancelled">Import cancelled</string>
     <string name="contact_permission_denied">SafeWord needs contact access to import people from your phone book.</string>
     <string name="contact_limit_reached">You\'ve reached the %1$d contact limit. Upgrade to SafeWord Pro for more.</string>
-    <string name="admob_banner_unit">ca-app-pub-3940256099942544/6300978111</string>
-    <string name="admob_app_id">ca-app-pub-3940256099942544~3347511713</string>
+    <string name="admob_banner_unit">ca-app-pub-5327057757821609/8317446089</string>
+    <string name="admob_native_unit">ca-app-pub-5327057757821609/4853677944</string>
+    <string name="admob_app_id">ca-app-pub-5327057757821609~9475449237</string>
     <string name="mode_incoming_locked">Incoming Mode (Pro)</string>
     <string name="safe_word_one_hint">Safe Word 1</string>
     <string name="second_safe_word">Safe Word 2</string>
@@ -82,6 +83,7 @@
     <string name="onboarding_finish">Finish</string>
     <string name="onboarding_open_battery_settings">Battery optimization settings</string>
     <string name="onboarding_open_dnd_settings">Allow Do Not Disturb overrides</string>
+    <string name="learn_more">Learn more</string>
     <plurals name="contacts_count">
         <item quantity="one">%d contact configured</item>
         <item quantity="other">%d contacts configured</item>

@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.ColorStateList
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -13,11 +14,18 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.google.android.gms.ads.AdLoader
 import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.nativead.NativeAd
+import com.google.android.gms.ads.nativead.NativeAdOptions
+import com.google.android.gms.ads.nativead.NativeAdView
+import com.google.android.gms.ads.VideoOptions
 import com.google.android.material.snackbar.Snackbar
 import com.safeword.BuildConfig
 import com.safeword.R
 import com.safeword.databinding.ActivityMainBinding
+import com.safeword.databinding.ViewNativeAdBinding
 import com.safeword.service.SafeWordPeerService
 import com.safeword.service.VoiceRecognitionService
 import com.safeword.ui.main.MainUiState
@@ -33,6 +41,7 @@ class MainActivity : AppCompatActivity() {
     private val viewModel: MainViewModel by viewModels()
     private lateinit var binding: ActivityMainBinding
     private var updatingModeSelection = false
+    private var currentNativeAd: NativeAd? = null
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -63,7 +72,7 @@ class MainActivity : AppCompatActivity() {
         binding.toolbar.inflateMenu(R.menu.menu_main)
 
         configureFeatureAccess()
-        loadAdsIfNeeded()
+        loadNativeAdIfNeeded()
 
         SafeWordPeerService.start(this)
 
@@ -95,6 +104,12 @@ class MainActivity : AppCompatActivity() {
         observeState()
     }
 
+    override fun onDestroy() {
+        currentNativeAd?.destroy()
+        currentNativeAd = null
+        super.onDestroy()
+    }
+
     private fun configureFeatureAccess() {
         if (!BuildConfig.FEATURE_INCOMING_SMS) {
             binding.buttonModeIncoming.isEnabled = false
@@ -106,14 +121,84 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun loadAdsIfNeeded() {
-        if (BuildConfig.FEATURE_ADS_ENABLED) {
-            binding.bannerAd.visibility = View.VISIBLE
-            val adRequest = AdRequest.Builder().build()
-            binding.bannerAd.loadAd(adRequest)
-        } else {
-            binding.bannerAd.visibility = View.GONE
+    private fun loadNativeAdIfNeeded() {
+        if (!BuildConfig.FEATURE_ADS_ENABLED) {
+            binding.nativeAdContainer.visibility = View.GONE
+            return
         }
+
+        val adLoader = AdLoader.Builder(this, getString(R.string.admob_native_unit))
+            .forNativeAd { nativeAd ->
+                currentNativeAd?.destroy()
+                currentNativeAd = nativeAd
+                val adBinding = ViewNativeAdBinding.inflate(LayoutInflater.from(this))
+                populateNativeAdView(nativeAd, adBinding)
+                binding.nativeAdContainer.removeAllViews()
+                binding.nativeAdContainer.addView(adBinding.root)
+                binding.nativeAdContainer.visibility = View.VISIBLE
+            }
+            .withAdListener(object : com.google.android.gms.ads.AdListener() {
+                override fun onAdFailedToLoad(error: LoadAdError) {
+                    binding.nativeAdContainer.visibility = View.GONE
+                }
+            })
+            .withNativeAdOptions(
+                NativeAdOptions.Builder()
+                    .setVideoOptions(
+                        VideoOptions.Builder()
+                            .setStartMuted(true)
+                            .build()
+                    )
+                    .build()
+            )
+            .build()
+
+        adLoader.loadAd(AdRequest.Builder().build())
+    }
+
+    private fun populateNativeAdView(nativeAd: NativeAd, adBinding: ViewNativeAdBinding) {
+        val adView = adBinding.root
+        adView.headlineView = adBinding.adHeadline
+        adView.bodyView = adBinding.adBody
+        adView.iconView = adBinding.adIcon
+        adView.callToActionView = adBinding.adCallToAction
+        adView.mediaView = adBinding.adMedia
+        adView.advertiserView = adBinding.adAdvertiser
+
+        adBinding.adHeadline.text = nativeAd.headline
+
+        val body = nativeAd.body
+        if (body.isNullOrBlank()) {
+            adBinding.adBody.visibility = View.GONE
+        } else {
+            adBinding.adBody.visibility = View.VISIBLE
+            adBinding.adBody.text = body
+        }
+
+        val advertiser = nativeAd.advertiser
+        if (advertiser.isNullOrBlank()) {
+            adBinding.adAdvertiser.visibility = View.GONE
+        } else {
+            adBinding.adAdvertiser.visibility = View.VISIBLE
+            adBinding.adAdvertiser.text = advertiser
+        }
+
+        val icon = nativeAd.icon
+        if (icon != null) {
+            adBinding.adIcon.visibility = View.VISIBLE
+            adBinding.adIcon.setImageDrawable(icon.drawable)
+        } else {
+            adBinding.adIcon.visibility = View.GONE
+        }
+
+        val ctaText = nativeAd.callToAction ?: getString(R.string.learn_more)
+        adBinding.adCallToAction.text = ctaText
+        adBinding.adCallToAction.visibility =
+            if (nativeAd.callToAction.isNullOrBlank()) View.GONE else View.VISIBLE
+
+        adBinding.adMedia.setMediaContent(nativeAd.mediaContent)
+
+        adView.setNativeAd(nativeAd)
     }
 
     private fun observeState() {
