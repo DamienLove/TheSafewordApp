@@ -3,9 +3,14 @@ package com.safeword.receiver
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.provider.Telephony
+import android.telephony.PhoneNumberUtils
+import android.util.Log
+import com.safeword.BuildConfig
 import com.safeword.shared.domain.SafeWordEngine
+import com.safeword.shared.domain.model.Contact
+import com.safeword.shared.domain.repository.ContactRepository
+import com.safeword.shared.domain.usecase.UpsertContactUseCase
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -16,13 +21,59 @@ import javax.inject.Inject
 class SafeWordSmsReceiver : BroadcastReceiver() {
 
     @Inject lateinit var engine: SafeWordEngine
+    @Inject lateinit var upsertContactUseCase: UpsertContactUseCase
+    @Inject lateinit var contactRepository: ContactRepository
 
     private val scope = CoroutineScope(Dispatchers.Default)
 
     override fun onReceive(context: Context?, intent: Intent?) {
         if (intent?.action != Telephony.Sms.Intents.SMS_RECEIVED_ACTION) return
+        if (!BuildConfig.FEATURE_INCOMING_SMS) {
+            Log.d(TAG, "Incoming SMS handling disabled for this build.")
+            return
+        }
         val messages = Telephony.Sms.Intents.getMessagesFromIntent(intent)
+        if (messages.isEmpty()) return
+
         val messageBody = messages.joinToString(separator = " ") { it.displayMessageBody }
-        scope.launch { engine.processSms(messageBody) }
+        val sender = messages.firstOrNull()?.displayOriginatingAddress.orEmpty()
+
+        scope.launch {
+            ensureContactForSender(sender, messageBody)
+            engine.processSms(messageBody)
+        }
+    }
+
+    private suspend fun ensureContactForSender(phone: String, message: String) {
+        if (phone.isBlank()) return
+        val normalisedPhone = PhoneNumberUtils.normalizeNumber(phone) ?: phone.filterNot { it.isWhitespace() }
+        val existing = contactRepository.findByPhone(normalisedPhone)
+        if (existing != null) return
+
+        val limit = BuildConfig.CONTACT_LIMIT
+        if (limit > 0) {
+            val currentSize = contactRepository.listContacts().size
+            if (currentSize >= limit) {
+                Log.w(TAG, "Contact limit reached, skipping auto-add for $phone")
+                return
+            }
+        }
+
+        val alias = safeWordNameRegex.find(message)?.groupValues?.getOrNull(1)?.takeIf { it.isNotBlank() }
+        val contactName = alias ?: normalisedPhone
+        val contact = Contact(
+            id = null,
+            name = contactName,
+            phone = normalisedPhone,
+            email = null,
+            createdAtMillis = 0L
+        )
+        runCatching { upsertContactUseCase(contact) }
+            .onFailure { Log.e(TAG, "Failed to auto-add contact from SMS", it) }
+    }
+
+    companion object {
+        private const val TAG = "SafeWordSmsReceiver"
+        private val safeWordNameRegex = Regex("SafeWord\\s+'([^']+)'")
     }
 }
