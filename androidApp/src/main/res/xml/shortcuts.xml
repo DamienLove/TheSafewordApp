@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="start_listening"
+        android:enabled="true"
+        android:icon="@drawable/ic_logo_safeword"
+        android:shortcutShortLabel="@string/shortcut_start_listening_short"
+        android:shortcutLongLabel="@string/shortcut_start_listening_long">
+        <intent
+            android:action="com.safeword.action.START_LISTENING"
+            android:targetClass="com.safeword.ui.MainActivity"
+            android:targetPackage="com.safeword" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="trigger_test"
+        android:enabled="true"
+        android:icon="@drawable/ic_logo_safeword"
+        android:shortcutShortLabel="@string/shortcut_trigger_test_short"
+        android:shortcutLongLabel="@string/shortcut_trigger_test_long">
+        <intent
+            android:action="com.safeword.action.RUN_TEST"
+            android:targetClass="com.safeword.ui.MainActivity"
+            android:targetPackage="com.safeword" />
+    </shortcut>
+</shortcuts>

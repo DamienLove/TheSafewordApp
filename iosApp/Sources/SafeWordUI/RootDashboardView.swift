@@ -75,6 +75,7 @@ final class SafeWordRootViewModel: ObservableObject {
 
     func runTest() {
         container.engine.runTest(completionHandler: { _ in })
+        SiriShortcuts.donateTriggerTest()
     }
 
     private func apply(state: SharedDashboardState) {

@@ -26,6 +26,11 @@ Contact Pings & Gentle Alerts
 - Pings broadcast a gentle alert to linked SafeWord peers (~60% volume) and display a check-in notification.
 - Custom audio hooks: place `androidApp/src/main/res/raw/safeword_alert.(ogg|mp3)` for the siren loop and optional `safeword_ping.(ogg|mp3)` for the ping tone.
 
+Voice Shortcuts
+---------------
+- Android static shortcuts + Assistant App Actions added (`shortcuts.xml`, `actions.xml`). Users can say “Hey Google, start SafeWord listening” to toggle the service.
+- iOS now donates Siri Shortcuts when listening is enabled or the test alert runs; suggested phrases include “Start SafeWord” and “Run SafeWord test”.
+
 Signing Secrets Required
 ------------------------
 - Android: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`

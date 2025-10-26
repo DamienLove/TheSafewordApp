@@ -81,10 +81,19 @@ Native safety application delivering on-device "safe word" voice/SMS detection, 
   - Android: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`  
   - iOS: `IOS_CERT_BASE64`, `IOS_CERT_PASSWORD`, `IOS_PROVISION_PROFILE_BASE64`, `IOS_PROVISIONING_PROFILE_SPECIFIER`, `IOS_CODE_SIGN_IDENTITY`, `IOS_TEAM_ID`, optional `IOS_BUNDLE_ID`
 
+## Voice shortcuts (Hey Google / Hey Siri)
+- **Android**
+  - Static app shortcuts live in `androidApp/src/main/res/xml/shortcuts.xml` (“Start listening” and “Trigger test alert”).
+  - `androidApp/src/main/res/xml/actions.xml` binds those shortcuts to Assistant App Actions so users can say “Hey Google, start SafeWord listening” after verifying Digital Asset Links.
+  - `MainActivity` reacts to the custom actions (`com.safeword.action.START_LISTENING`, `com.safeword.action.RUN_TEST`) to toggle listening or fire the test siren hands-free.
+- **iOS**
+  - `SiriShortcuts.donateStartListening()` / `donateTriggerTest()` donate `NSUserActivity` shortcuts with suggested phrases like “Start SafeWord”.
+  - When the user enables listening or runs a test, the app refreshes the donation so Siri recommendations stay up to date.
+
 ## Custom siren & alert controls
 - Place a branded siren at `androidApp/src/main/res/raw/safeword_alert.(ogg|mp3)` to override the system alarm tone. The app will loop that audio as the emergency alert.
 - Alert notifications now include a **Silence alarm** action that stops playback instantly without waiting for timers to expire, and linked SafeWord peers can exchange gentle *Pings* that play a softer tone when you tap the new Ping button on a contact card.
-- Direct hooks into “Hey Google” or “Hey Siri” hotwords are not permitted by platform policies; SafeWord continues to run its own on-device recognizer with throttled restarts to minimise beeps and battery drain.
+- Direct hooks into "Hey Google" or "Hey Siri" hotwords are not permitted by platform policies; SafeWord continues to run its own on-device recognizer with throttled restarts to minimise beeps and battery drain.
 
 ## License
 Proprietary - internal use only.

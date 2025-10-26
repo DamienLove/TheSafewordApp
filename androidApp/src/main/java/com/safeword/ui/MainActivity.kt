@@ -26,8 +26,10 @@ import com.safeword.BuildConfig
 import com.safeword.R
 import com.safeword.databinding.ActivityMainBinding
 import com.safeword.databinding.ViewNativeAdBinding
+import com.safeword.service.EmergencyHandlerService
 import com.safeword.service.SafeWordPeerService
 import com.safeword.service.VoiceRecognitionService
+import com.safeword.shared.domain.model.AlertSource
 import com.safeword.ui.main.MainUiState
 import com.safeword.ui.main.MainViewModel
 import com.safeword.ui.onboarding.OnboardingActivity
@@ -102,6 +104,13 @@ class MainActivity : AppCompatActivity() {
 
         updateModeButtons(binding.modeToggleGroup.checkedButtonId == binding.buttonModeIncoming.id)
         observeState()
+        handleShortcutIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleShortcutIntent(intent)
     }
 
     override fun onDestroy() {
@@ -274,5 +283,25 @@ class MainActivity : AppCompatActivity() {
         } else {
             VoiceRecognitionService.start(this)
         }
+    }
+
+    private fun handleShortcutIntent(intent: Intent?) {
+        when (intent?.action) {
+            ACTION_START_LISTENING -> {
+                if (!binding.switchListening.isChecked) {
+                    binding.switchListening.isChecked = true
+                } else {
+                    ensureVoicePermission()
+                }
+            }
+            ACTION_RUN_TEST -> {
+                EmergencyHandlerService.trigger(this, "TEST", AlertSource.TEST)
+            }
+        }
+    }
+
+    companion object {
+        const val ACTION_START_LISTENING = "com.safeword.action.START_LISTENING"
+        const val ACTION_RUN_TEST = "com.safeword.action.RUN_TEST"
     }
 }

@@ -38,6 +38,10 @@
     <string name="contact_message_body">Hey %1$s, I need to reach you via SafeWord.</string>
     <string name="contact_action_error">No app found to handle this action.</string>
     <string name="contact_deleted">Deleted %1$s</string>
+    <string name="shortcut_start_listening_short">Start listening</string>
+    <string name="shortcut_start_listening_long">Start SafeWord listening</string>
+    <string name="shortcut_trigger_test_short">Trigger test alert</string>
+    <string name="shortcut_trigger_test_long">Trigger SafeWord test alert</string>
     <string name="main_headline">Your silent lifeline</string>
     <string name="main_listening_active">Listening Active</string>
     <string name="main_listening_inactive">Listening Paused</string>
