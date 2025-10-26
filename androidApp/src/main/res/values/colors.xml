@@ -1,26 +1,36 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#0E101B</color>
-    <color name="safeword_primary">#1D2A6B</color>
-    <color name="safeword_primary_variant">#15204E</color>
-    <color name="safeword_secondary">#23D2FF</color>
-    <color name="safeword_background">#0E101B</color>
-    <color name="safeword_surface">#1B1F2F</color>
+    <color name="ic_launcher_background">#07121C</color>
+    <color name="safeword_primary">#1F6FEB</color>
+    <color name="safeword_primary_variant">#123B73</color>
+    <color name="safeword_secondary">#21D1C2</color>
+    <color name="safeword_background">#07121C</color>
+    <color name="safeword_surface">#102030</color>
     <color name="safeword_on_primary">#FFFFFF</color>
-    <color name="safeword_on_secondary">#0E101B</color>
-    <color name="safeword_on_surface">#E4E7F5</color>
-    <color name="safeword_on_surface_variant">#AAB3D1</color>
-    <color name="gradient_primary_start">#3D63FF</color>
-    <color name="gradient_primary_end">#23D2FF</color>
-    <color name="gradient_secondary_start">#7C3AED</color>
-    <color name="gradient_secondary_end">#23D2FF</color>
+    <color name="safeword_on_secondary">#04111A</color>
+    <color name="safeword_on_surface">#E6F1FF</color>
+    <color name="safeword_on_surface_variant">#9BB0CC</color>
+    <color name="gradient_primary_start">#17407B</color>
+    <color name="gradient_primary_end">#102337</color>
+    <color name="gradient_secondary_start">#1F6FEB</color>
+    <color name="gradient_secondary_end">#102844</color>
     <color name="gradient_alert_start">#FF4D6D</color>
     <color name="gradient_alert_end">#F97316</color>
-    <color name="overlay_dark">#CC0E101B</color>
-    <color name="mode_selected_bg">#1FE9C5</color>
-    <color name="mode_selected_text">#04121D</color>
-    <color name="mode_unselected_bg">#331C1F3B</color>
-    <color name="mode_unselected_text">#E6FFFFFF</color>
+    <color name="overlay_dark">#9907131D</color>
+    <color name="mode_selected_bg">#1F6FEB</color>
+    <color name="mode_selected_text">#FFFFFF</color>
+    <color name="mode_unselected_bg">#1A2B3B</color>
+    <color name="mode_unselected_text">#9BB0CC</color>
+    <color name="card_background">#122032</color>
+    <color name="card_background_variant">#16273C</color>
+    <color name="status_chip_bg">#122433</color>
+    <color name="status_chip_text">#BBD4F9</color>
+    <color name="listening_button_start">#163E7A</color>
+    <color name="listening_button_end">#1B4D9C</color>
+    <color name="listening_button_inactive">#1A2736</color>
+    <color name="glow_start">#2D6BFF</color>
+    <color name="glow_end">#06152B</color>
+    <color name="accent_teal">#21D1C2</color>
 </resources>
 
 

@@ -47,6 +47,8 @@
     <string name="main_listening_inactive">Listening Paused</string>
     <string name="main_listening_subtitle_on">SafeWord is monitoring for your phrase and ready to alert your circle.</string>
     <string name="main_listening_subtitle_off">Tap to resume monitoring whenever you feel ready.</string>
+    <string name="main_status_listening_chip_on">Listening live</string>
+    <string name="main_status_listening_chip_off">Listening paused</string>
     <string name="main_mode_label">Mode</string>
     <string name="main_incoming_description">Listen for SafeWords from your trusted contacts.</string>
     <string name="main_outgoing_description">Send alerts from this device when you speak the SafeWord.</string>

@@ -1,7 +1,75 @@
 SafeWord Delivery Notes
 =======================
 
-Last updated: 2025-10-26 (evening)
+Last updated: 2025-10-26 (evening consolidated)
+
+Environment Setup
+-----------------
+1. JDK: Temurin 17 (`C:\Program Files\Eclipse Adoptium\jdk-17.0.16.8-hotspot`)
+   - Persisted: run once `setx JAVA_HOME "C:\Program Files\Eclipse Adoptium\jdk-17.0.16.8-hotspot"`
+   - Per shell: `$env:JAVA_HOME = "C:\Program Files\Eclipse Adoptium\jdk-17.0.16.8-hotspot"` then `$env:PATH = "$env:JAVA_HOME\bin;$env:PATH"`
+2. Android SDK: `platforms/android-35` (rev 3) installed; SDK 34 also present.
+3. Gradle wrapper: version 8.6 (`gradlew wrapper --gradle-version 8.6`).
+4. Kotlin 1.9.22 plugins; Android Gradle Plugin 8.3.2.
+
+Project Structure
+-----------------
+- Repo root: `C:\Projects\Safeword`
+- Modules:
+  * `shared` — Kotlin Multiplatform domain + data (compileSdk 35)
+  * `androidApp` — Android client (minSdk 26 / targetSdk 35 / compileSdk 35)
+
+AdMob Configuration
+-------------------
+- Android App ID: `ca-app-pub-5327057757821609~9475449237`
+- Android Native Ad (free): `ca-app-pub-5327057757821609/4853677944`
+- Android Banner (reserved): `ca-app-pub-5327057757821609/8317446089`
+- iOS App ID: `ca-app-pub-5327057757821609~4387785846`
+- iOS Banner: `ca-app-pub-5327057757821609/9655590245`
+- iOS Native: `ca-app-pub-5327057757821609/4494585296`
+- `app-ads.txt` line: `google.com, pub-5327057757821609, DIRECT, f08c47fec0942fa0`
+
+Product Flavours
+----------------
+- `free` (applicationId suffix `.free`): ads enabled, Incoming Mode disabled, three-contact cap, ringer restore after 10 minutes.
+- `pro` (suffix `.pro`): ads disabled, Incoming Mode enabled, unlimited contacts, ringer restore after 5 minutes.
+- Runtime behaviour controlled via `BuildConfig` flags (`FEATURE_ADS_ENABLED`, `FEATURE_INCOMING_SMS`, `CONTACT_LIMIT`, `RINGER_RESTORE_DELAY_MINUTES`).
+
+Build Commands
+--------------
+- Clean: `./gradlew.bat clean`
+- Assemble free release: `./gradlew.bat androidApp:assembleFreeRelease`
+- Assemble pro release: `./gradlew.bat androidApp:assembleProRelease`
+- Shared module check: `./gradlew.bat shared:assemble`
+- Outputs land in `androidApp/build/outputs/apk/{free|pro}/` or `.../bundle/` for AABs.
+
+CI / Automation
+---------------
+- Workflow `.github/workflows/mobile-build.yml` runs on pushes/PRs targeting `main` and `develop`, building signed Android APKs plus a distributable iOS IPA.
+- Android job expects repo secrets: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`.
+- iOS job expects: `IOS_CERT_BASE64`, `IOS_CERT_PASSWORD`, `IOS_PROVISION_PROFILE_BASE64`, `IOS_PROVISIONING_PROFILE_SPECIFIER`, `IOS_CODE_SIGN_IDENTITY`, `IOS_TEAM_ID` (optional `IOS_BUNDLE_ID`, defaults to `com.safeword.app`).
+- Workflow artifacts: `android-apks` (free/pro release APKs) and `ios-app-store-ipa` (`SafeWord.ipa`); job fails fast if any signing secret is missing.
+
+Operational Notes
+-----------------
+- Free flavour hides incoming mode (`Incoming Mode (Pro)`) and may surface an upgrade CTA pointing to the pro SKU.
+- Ringer restore delay is flavour-specific (see `build.gradle.kts`).
+- Ensure privacy policy covers microphone, SMS, location, DND, ads, and ATT (for iOS).
+- Room still warns about schema export; add the `androidx.room` Gradle plugin or set `exportSchema=false` if desired.
+- Android release signing pulls from Gradle properties (`ANDROID_KEYSTORE_*`); if unset, release outputs remain unsigned with a console warning.
+
+Publishing Checklist Snapshot
+-----------------------------
+- Host `app-ads.txt` on the developer domain with the line above.
+- Prepare Play listings (free + paid), upload release bundles, complete Data Safety/permissions, supply assets.
+- Build the iOS wrapper, integrate the iOS AdMob IDs, add ATT/consent, and prepare App Store Connect entries.
+
+To Resume In A Fresh Terminal
+-----------------------------
+1. Set `JAVA_HOME` or ensure `PATH` points to Temurin 17.
+2. `cd C:\Projects\Safeword`
+3. Run `./gradlew.bat androidApp:assembleFreeDebug` (or `...ProDebug`).
+4. If Gradle complains about SDKs, run `sdkmanager "platforms;android-35"`.
 
 Android Emulator
 ----------------
@@ -28,8 +96,15 @@ Contact Pings & Gentle Alerts
 
 Voice Shortcuts
 ---------------
-- Android static shortcuts + Assistant App Actions added (`shortcuts.xml`, `actions.xml`). Users can say “Hey Google, start SafeWord listening” to toggle the service.
-- iOS now donates Siri Shortcuts when listening is enabled or the test alert runs; suggested phrases include “Start SafeWord” and “Run SafeWord test”.
+- Android static shortcuts + Assistant App Actions added (`shortcuts.xml`, `actions.xml`). Users can say "Hey Google, start SafeWord listening" to toggle the service.
+- iOS now donates Siri Shortcuts when listening is enabled or the test alert runs; suggested phrases include "Start SafeWord" and "Run SafeWord test".
+
+Dashboard UI Refresh
+--------------------
+- Branch `ui-polish` now replaces the main dashboard scroll view with a constrained neon layout and circular listening control (`activity_main.xml`).
+- New drawable assets back the glow/button/card visuals; palette tweaked in `colors.xml` and gradients updated in `bg_app.xml`.
+- Listening toggle moved to the card tap handler in `MainActivity.kt`; permission handling now gates microphone/notification access and the glow visibility updates via `isVisible`.
+- Safe Word wizard access is restored as a primary action tile alongside Contacts and Settings.
 
 Signing Secrets Required
 ------------------------
@@ -38,6 +113,8 @@ Signing Secrets Required
 
 Next Actions
 ------------
+- Smoke-test the refreshed dashboard across small/large screen buckets and landscape to confirm constraints hold.
+- Verify Safe Word wizard onboarding, voice permissions, and native ad placements after the UI changes.
 - Populate the secrets listed above before publishing a GitHub release.
 - For emulator testing, use `adb logcat` to monitor speech triggers and SMS receivers in real time.
 - Supply custom audio under `androidApp/src/main/res/raw/` (`safeword_alert.*` for siren, `safeword_ping.*` for gentle pings) to brand the experience; the app falls back to system tones otherwise.

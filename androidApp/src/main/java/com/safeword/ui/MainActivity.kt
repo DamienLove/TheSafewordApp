@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -30,6 +31,7 @@ import com.safeword.service.EmergencyHandlerService
 import com.safeword.service.SafeWordPeerService
 import com.safeword.service.VoiceRecognitionService
 import com.safeword.shared.domain.model.AlertSource
+import com.safeword.ui.SafeWordWizardActivity
 import com.safeword.ui.main.MainUiState
 import com.safeword.ui.main.MainViewModel
 import com.safeword.ui.onboarding.OnboardingActivity
@@ -44,15 +46,16 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private var updatingModeSelection = false
     private var currentNativeAd: NativeAd? = null
+    private var isListening = false
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { result ->
         val granted = result.values.all { it }
         if (granted) {
-            VoiceRecognitionService.start(this)
+            viewModel.setListening(true)
         } else {
-            binding.switchListening.isChecked = false
+            viewModel.setListening(false)
             Snackbar.make(binding.root, R.string.enable_permissions, Snackbar.LENGTH_LONG).show()
         }
     }
@@ -67,20 +70,13 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        setSupportActionBar(binding.toolbar)
-        binding.toolbar.setNavigationOnClickListener {
-            startActivity(Intent(this, SettingsActivity::class.java))
-        }
-        binding.toolbar.inflateMenu(R.menu.menu_main)
-
         configureFeatureAccess()
         loadNativeAdIfNeeded()
 
         SafeWordPeerService.start(this)
 
-        binding.switchListening.setOnCheckedChangeListener { _, isChecked ->
-            viewModel.setListening(isChecked)
-            if (isChecked) ensureVoicePermission() else VoiceRecognitionService.stop(this)
+        binding.cardListening.setOnClickListener {
+            toggleListeningState()
         }
 
         binding.modeToggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
@@ -219,20 +215,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun renderState(state: MainUiState) {
-        if (binding.switchListening.isChecked != state.listeningEnabled) {
-            binding.switchListening.isChecked = state.listeningEnabled
-        }
-        binding.textListeningStatus.text = if (state.listeningEnabled) {
-            binding.switchListening.text = getString(R.string.main_listening_active)
-            getString(R.string.main_listening_active)
-        } else {
-            binding.switchListening.text = getString(R.string.main_listening_inactive)
-            getString(R.string.main_listening_inactive)
-        }
-        binding.textListeningSubtitle.text = if (state.listeningEnabled) {
-            getString(R.string.main_listening_subtitle_on)
-        } else {
-            getString(R.string.main_listening_subtitle_off)
+        val changed = isListening != state.listeningEnabled
+        isListening = state.listeningEnabled
+        updateListeningUi(isListening)
+        if (changed) {
+            if (isListening) {
+                VoiceRecognitionService.start(this)
+            } else {
+                VoiceRecognitionService.stop(this)
+            }
         }
         updatingModeSelection = true
         if (BuildConfig.FEATURE_INCOMING_SMS && state.incomingMode) {
@@ -270,28 +261,54 @@ class MainActivity : AppCompatActivity() {
         binding.buttonModeOutgoing.setTextColor(outgoingTextColor)
     }
 
-    private fun ensureVoicePermission() {
+    private fun toggleListeningState() {
+        if (isListening) {
+            viewModel.setListening(false)
+            return
+        }
+
         val permissions = arrayOf(
             Manifest.permission.RECORD_AUDIO,
             Manifest.permission.POST_NOTIFICATIONS
         )
-        val needsRequest = permissions.any { perm ->
-            ContextCompat.checkSelfPermission(this, perm) != PackageManager.PERMISSION_GRANTED
+        val hasPermissions = permissions.all { perm ->
+            ContextCompat.checkSelfPermission(this, perm) == PackageManager.PERMISSION_GRANTED
         }
-        if (needsRequest) {
-            permissionLauncher.launch(permissions)
+        if (hasPermissions) {
+            viewModel.setListening(true)
         } else {
-            VoiceRecognitionService.start(this)
+            permissionLauncher.launch(permissions)
+        }
+    }
+
+    private fun updateListeningUi(listening: Boolean) {
+        binding.imageListeningGlow.isVisible = listening
+        binding.cardListening.setBackgroundResource(
+            if (listening) R.drawable.bg_listening_button_on else R.drawable.bg_listening_button_off
+        )
+        binding.imageListeningIcon.setColorFilter(
+            ContextCompat.getColor(
+                this,
+                if (listening) R.color.safeword_on_primary else R.color.accent_teal
+            )
+        )
+        binding.textListeningStatus.text = if (listening) {
+            getString(R.string.main_listening_active)
+        } else {
+            getString(R.string.main_listening_inactive)
+        }
+        binding.textStatusChip.text = if (listening) {
+            getString(R.string.main_status_listening_chip_on)
+        } else {
+            getString(R.string.main_status_listening_chip_off)
         }
     }
 
     private fun handleShortcutIntent(intent: Intent?) {
         when (intent?.action) {
             ACTION_START_LISTENING -> {
-                if (!binding.switchListening.isChecked) {
-                    binding.switchListening.isChecked = true
-                } else {
-                    ensureVoicePermission()
+                if (!isListening) {
+                    toggleListeningState()
                 }
             }
             ACTION_RUN_TEST -> {
