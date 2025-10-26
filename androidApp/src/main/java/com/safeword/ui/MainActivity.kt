@@ -3,7 +3,9 @@ package com.safeword.ui
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.content.res.ColorStateList
 import android.os.Bundle
+import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -11,13 +13,17 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.google.android.gms.ads.AdRequest
 import com.google.android.material.snackbar.Snackbar
+import com.safeword.BuildConfig
 import com.safeword.R
 import com.safeword.databinding.ActivityMainBinding
 import com.safeword.service.SafeWordPeerService
 import com.safeword.service.VoiceRecognitionService
 import com.safeword.ui.main.MainUiState
 import com.safeword.ui.main.MainViewModel
+import com.safeword.ui.onboarding.OnboardingActivity
+import com.safeword.util.OnboardingPreferences
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -42,9 +48,23 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (!OnboardingPreferences.isCompleted(this)) {
+            startActivity(Intent(this, OnboardingActivity::class.java))
+            finish()
+            return
+        }
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
+
         setSupportActionBar(binding.toolbar)
+        binding.toolbar.setNavigationOnClickListener {
+            startActivity(Intent(this, SettingsActivity::class.java))
+        }
+        binding.toolbar.inflateMenu(R.menu.menu_main)
+
+        configureFeatureAccess()
+        loadAdsIfNeeded()
+
         SafeWordPeerService.start(this)
 
         binding.switchListening.setOnCheckedChangeListener { _, isChecked ->
@@ -56,6 +76,7 @@ class MainActivity : AppCompatActivity() {
             if (!isChecked || updatingModeSelection) return@addOnButtonCheckedListener
             val incoming = checkedId == binding.buttonModeIncoming.id
             viewModel.setModeIncoming(incoming)
+            updateModeButtons(incoming)
         }
 
         binding.cardSettings.setOnClickListener {
@@ -70,7 +91,29 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, SafeWordWizardActivity::class.java))
         }
 
+        updateModeButtons(binding.modeToggleGroup.checkedButtonId == binding.buttonModeIncoming.id)
         observeState()
+    }
+
+    private fun configureFeatureAccess() {
+        if (!BuildConfig.FEATURE_INCOMING_SMS) {
+            binding.buttonModeIncoming.isEnabled = false
+            binding.buttonModeIncoming.text = getString(R.string.mode_incoming_locked)
+            binding.buttonModeIncoming.alpha = 0.5f
+        } else {
+            binding.buttonModeIncoming.isEnabled = true
+            binding.buttonModeIncoming.alpha = 1f
+        }
+    }
+
+    private fun loadAdsIfNeeded() {
+        if (BuildConfig.FEATURE_ADS_ENABLED) {
+            binding.bannerAd.visibility = View.VISIBLE
+            val adRequest = AdRequest.Builder().build()
+            binding.bannerAd.loadAd(adRequest)
+        } else {
+            binding.bannerAd.visibility = View.GONE
+        }
     }
 
     private fun observeState() {
@@ -98,18 +141,39 @@ class MainActivity : AppCompatActivity() {
             getString(R.string.main_listening_subtitle_off)
         }
         updatingModeSelection = true
-        if (state.incomingMode) {
+        if (BuildConfig.FEATURE_INCOMING_SMS && state.incomingMode) {
             binding.modeToggleGroup.check(binding.buttonModeIncoming.id)
         } else {
+            if (!BuildConfig.FEATURE_INCOMING_SMS && state.incomingMode) {
+                viewModel.setModeIncoming(false)
+            }
             binding.modeToggleGroup.check(binding.buttonModeOutgoing.id)
         }
         updatingModeSelection = false
+        updateModeButtons(state.incomingMode && BuildConfig.FEATURE_INCOMING_SMS)
         binding.textContacts.text = resources.getQuantityString(R.plurals.contacts_count, state.contacts, state.contacts)
         binding.textPeerState.text = when (state.peerState) {
             is com.safeword.shared.bridge.model.PeerBridgeState.Connected -> getString(R.string.peer_connected)
             is com.safeword.shared.bridge.model.PeerBridgeState.Error -> state.peerState.message
             else -> getString(R.string.peer_disconnected)
         }
+    }
+
+    private fun updateModeButtons(incomingSelected: Boolean) {
+        val selectedBackground = ContextCompat.getColor(this, R.color.mode_selected_bg)
+        val unselectedBackground = ContextCompat.getColor(this, R.color.mode_unselected_bg)
+        val selectedText = ContextCompat.getColor(this, R.color.mode_selected_text)
+        val unselectedText = ContextCompat.getColor(this, R.color.mode_unselected_text)
+
+        val incomingColor = if (incomingSelected) selectedBackground else unselectedBackground
+        val outgoingColor = if (incomingSelected) unselectedBackground else selectedBackground
+        val incomingTextColor = if (incomingSelected) selectedText else unselectedText
+        val outgoingTextColor = if (incomingSelected) unselectedText else selectedText
+
+        binding.buttonModeIncoming.backgroundTintList = ColorStateList.valueOf(incomingColor)
+        binding.buttonModeOutgoing.backgroundTintList = ColorStateList.valueOf(outgoingColor)
+        binding.buttonModeIncoming.setTextColor(incomingTextColor)
+        binding.buttonModeOutgoing.setTextColor(outgoingTextColor)
     }
 
     private fun ensureVoicePermission() {

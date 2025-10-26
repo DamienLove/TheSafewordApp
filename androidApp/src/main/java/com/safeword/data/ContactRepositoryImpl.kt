@@ -29,6 +29,12 @@ class ContactRepositoryImpl(
     override suspend fun getContact(contactId: Long): Contact? =
         dao.getById(contactId)?.toDomain()
 
+    override suspend fun findByPhone(phone: String): Contact? =
+        dao.getByPhone(phone)?.toDomain()
+
+    override suspend fun listContacts(): List<Contact> =
+        dao.getAll().map { it.toDomain() }
+
     private fun ContactEntity.toDomain(): Contact = Contact(
         id = id,
         name = name,

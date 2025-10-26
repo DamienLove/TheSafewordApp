@@ -1,4 +1,0 @@
-com.safeword.test.androidApp-androidTest-0 C:\Projects\Safeword\androidApp\build\generated\res\resValues\androidTest\debug
-com.safeword.test.androidApp-mergeDebugAndroidTestResources-1 C:\Projects\Safeword\androidApp\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\merged.dir
-com.safeword.test.androidApp-mergeDebugAndroidTestResources-2 C:\Projects\Safeword\androidApp\build\intermediates\incremental\debugAndroidTest\mergeDebugAndroidTestResources\stripped.dir
-com.safeword.test.androidApp-debugAndroidTest-3 C:\Projects\Safeword\androidApp\build\intermediates\merged_res\debugAndroidTest\mergeDebugAndroidTestResources
