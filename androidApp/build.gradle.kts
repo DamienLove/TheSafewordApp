@@ -28,6 +28,7 @@ android {
             versionNameSuffix = "-free"
             buildConfigField("boolean", "FEATURE_ADS_ENABLED", "true")
             buildConfigField("boolean", "FEATURE_INCOMING_SMS", "false")
+            buildConfigField("long", "RINGER_RESTORE_DELAY_MINUTES", "10L")
             buildConfigField("int", "CONTACT_LIMIT", "3")
         }
         create("pro") {
@@ -36,6 +37,7 @@ android {
             versionNameSuffix = "-pro"
             buildConfigField("boolean", "FEATURE_ADS_ENABLED", "false")
             buildConfigField("boolean", "FEATURE_INCOMING_SMS", "true")
+            buildConfigField("long", "RINGER_RESTORE_DELAY_MINUTES", "5L")
             buildConfigField("int", "CONTACT_LIMIT", "-1")
         }
     }
