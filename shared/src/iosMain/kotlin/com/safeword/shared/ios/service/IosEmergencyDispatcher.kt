@@ -4,9 +4,7 @@ import com.safeword.shared.domain.model.AlertEvent
 import com.safeword.shared.domain.model.Contact
 import com.safeword.shared.domain.service.EmergencyDispatcher
 import platform.AVFAudio.AVAudioPlayer
-import platform.AVFAudio.AVAudioPlayerNode
 import platform.AVFoundation.AVAudioSession
-import platform.Foundation.NSString
 import platform.Foundation.NSURL
 import platform.UserNotifications.UNMutableNotificationContent
 import platform.UserNotifications.UNNotificationRequest
@@ -36,16 +34,28 @@ class IosEmergencyDispatcher : EmergencyDispatcher {
         player = AVAudioPlayer(contentsOfURL = url, error = null)?.apply { play() }
     }
 
+    override suspend fun playGentleTone() {
+        val url = NSURL.fileURLWithPath("/System/Library/Audio/UISounds/Modern/sms_alert_complete.caf")
+        player?.stop()
+        player = AVAudioPlayer(contentsOfURL = url, error = null)?.apply {
+            setVolume(0.5f, 0f)
+            play()
+        }
+    }
+
     override suspend fun resolveLocation(): Pair<Double, Double>? = null
 
     override suspend fun sendSms(message: String, contacts: List<Contact>): Int {
-        // iOS prevents silent SMS dispatch; we surface via notification instead.
         showNotification("SafeWord prepared message", message)
         return 0
     }
 
     override suspend fun showEmergencyPrompt(detectedWord: String) {
-        showNotification("SafeWord Alert", "Detected ")
+        showNotification("SafeWord Alert", "Detected \"\"")
+    }
+
+    override suspend fun showCheckInPrompt(contactName: String, message: String) {
+        showNotification("Check in request for ", message)
     }
 
     override suspend fun logEvent(event: AlertEvent) {

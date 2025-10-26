@@ -8,8 +8,9 @@ import androidx.core.content.getSystemService
 import androidx.work.ExistingWorkPolicy
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
-import java.util.concurrent.TimeUnit
 import com.safeword.BuildConfig
+import java.util.concurrent.TimeUnit
+import kotlin.math.roundToInt
 
 class RingerManager(private val context: Context) {
     private val audioManager: AudioManager? = context.getSystemService()
@@ -19,13 +20,7 @@ class RingerManager(private val context: Context) {
     fun raiseToMax() {
         val audio = audioManager ?: return
         storeStateIfNeeded(audio, notificationManager)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            notificationManager?.let { manager ->
-                if (manager.isNotificationPolicyAccessGranted) {
-                    manager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
-                }
-            }
-        }
+        allowInterruptions()
         audio.ringerMode = AudioManager.RINGER_MODE_NORMAL
         val ringMax = audio.getStreamMaxVolume(AudioManager.STREAM_RING)
         audio.setStreamVolume(AudioManager.STREAM_RING, ringMax, AudioManager.FLAG_SHOW_UI)
@@ -36,9 +31,33 @@ class RingerManager(private val context: Context) {
         scheduleRestore()
     }
 
+    fun raiseToLevel(fraction: Float) {
+        val audio = audioManager ?: return
+        val clamped = fraction.coerceIn(0.2f, 1f)
+        storeStateIfNeeded(audio, notificationManager)
+        allowInterruptions()
+        audio.ringerMode = AudioManager.RINGER_MODE_NORMAL
+        val ringMax = audio.getStreamMaxVolume(AudioManager.STREAM_RING)
+        val ringLevel = (ringMax * clamped).roundToInt().coerceAtLeast(1)
+        audio.setStreamVolume(AudioManager.STREAM_RING, ringLevel, AudioManager.FLAG_SHOW_UI)
+        val notifMax = audio.getStreamMaxVolume(AudioManager.STREAM_NOTIFICATION)
+        val notifLevel = (notifMax * clamped).roundToInt().coerceAtLeast(1)
+        audio.setStreamVolume(AudioManager.STREAM_NOTIFICATION, notifLevel, AudioManager.FLAG_SHOW_UI)
+        scheduleRestore()
+    }
+
+    private fun allowInterruptions() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            notificationManager?.let { manager ->
+                if (manager.isNotificationPolicyAccessGranted) {
+                    manager.setInterruptionFilter(NotificationManager.INTERRUPTION_FILTER_ALL)
+                }
+            }
+        }
+    }
+
     private fun storeStateIfNeeded(audio: AudioManager, notification: NotificationManager?) {
         if (prefs.contains(KEY_RING_VOLUME)) {
-            // Keep existing snapshot so we restore the original baseline after the timer.
             return
         }
         val editor = prefs.edit()
@@ -72,6 +91,7 @@ class RingerManager(private val context: Context) {
         const val KEY_ALARM_VOLUME = "alarm_volume"
         const val KEY_RINGER_MODE = "ringer_mode"
         const val KEY_INTERRUPT_FILTER = "interrupt_filter"
+        const val GENTLE_ALERT_FRACTION = 0.6f
         internal const val RESTORE_WORK_NAME = "restore_ringer_work"
     }
 }

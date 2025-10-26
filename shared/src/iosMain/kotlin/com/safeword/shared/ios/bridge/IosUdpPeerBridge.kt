@@ -73,7 +73,7 @@ class IosUdpPeerBridge(
         stateFlow.value = PeerBridgeState.Idle
     }
 
-    override suspend fun broadcast(event: PeerBridgeEvent.AlertBroadcast) {
+    override suspend fun broadcast(event: PeerBridgeEvent) {
         withContext(Dispatchers.Default) {
             memScoped {
                 val socketFd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)

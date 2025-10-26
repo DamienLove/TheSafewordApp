@@ -55,8 +55,10 @@ class SafeWordEngine(
         }
         engineScope.launch {
             peerBridge.incomingEvents.collect { event ->
-                if (event is PeerBridgeEvent.AlertBroadcast) {
-                    handleIncomingPeerAlert(event.payload)
+                when (event) {
+                    is PeerBridgeEvent.AlertBroadcast -> handleIncomingPeerAlert(event.payload)
+                    is PeerBridgeEvent.CheckIn -> handleIncomingCheckIn(event)
+                    else -> Unit
                 }
             }
         }
@@ -88,6 +90,22 @@ class SafeWordEngine(
 
     suspend fun triggerManual(word: String, source: AlertSource, broadcast: Boolean = true) {
         triggerEmergency(detectedWord = word, source = source, broadcast = broadcast)
+    }
+
+    suspend fun sendCheckIn(contact: Contact): Boolean {
+        val state = dashboardState.value.bridgeState
+        if (state !is PeerBridgeState.Connected || state.peerCount <= 0) {
+            return false
+        }
+        val timestamp = timeProvider.nowMillis()
+        val event = PeerBridgeEvent.CheckIn(
+            contactName = contact.name,
+            contactPhone = contact.phone,
+            message = "Check in request for ${contact.name}",
+            timestampMillis = timestamp
+        )
+        peerBridge.broadcast(event)
+        return true
     }
 
     private suspend fun triggerEmergency(
@@ -149,6 +167,11 @@ class SafeWordEngine(
             )
         )
         dispatcher.logEvent(recorded)
+    }
+
+    private suspend fun handleIncomingCheckIn(event: PeerBridgeEvent.CheckIn) {
+        dispatcher.playGentleTone()
+        dispatcher.showCheckInPrompt(event.contactName, event.message)
     }
 }
 

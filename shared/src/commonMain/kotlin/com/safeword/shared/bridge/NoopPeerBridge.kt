@@ -23,7 +23,7 @@ class NoopPeerBridge : PeerBridge {
         stateFlow.value = PeerBridgeState.Idle
     }
 
-    override suspend fun broadcast(event: PeerBridgeEvent.AlertBroadcast) {
+    override suspend fun broadcast(event: PeerBridgeEvent) {
         // no-op
     }
 }

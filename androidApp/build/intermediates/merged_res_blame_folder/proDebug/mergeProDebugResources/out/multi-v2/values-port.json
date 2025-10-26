@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.safeword.androidApp-mergeProDebugResources-2:/values-port/values-port.xml",
+            "map": [
+                {
+                    "source": "C:\\Users\\me\\.gradle\\caches\\transforms-3\\04eaaaf9ed6a42c70759776e45bd0aee\\transformed\\appcompat-1.6.1\\res\\values-port\\values-port.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "55",
+                        "endOffsets": "106"
+                    }
+                }
+            ]
+        }
+    ]
+}

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="ic_launcher_background">#0E101B</color>
     <color name="safeword_primary">#1D2A6B</color>
     <color name="safeword_primary_variant">#15204E</color>
     <color name="safeword_secondary">#23D2FF</color>

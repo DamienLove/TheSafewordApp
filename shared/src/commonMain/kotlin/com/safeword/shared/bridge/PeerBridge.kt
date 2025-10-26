@@ -10,6 +10,5 @@ interface PeerBridge {
 
     suspend fun startAdvertising()
     suspend fun stop()
-    suspend fun broadcast(event: PeerBridgeEvent.AlertBroadcast)
+    suspend fun broadcast(event: PeerBridgeEvent)
 }
-

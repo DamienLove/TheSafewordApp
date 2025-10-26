@@ -30,6 +30,11 @@ class AndroidEmergencyDispatcher(
         if (enabled) soundPlayer.playAlarm() else soundPlayer.stop()
     }
 
+    override suspend fun playGentleTone() {
+        ringerManager.raiseToLevel(RingerManager.GENTLE_ALERT_FRACTION)
+        soundPlayer.playGentlePing()
+    }
+
     override suspend fun resolveLocation(): Pair<Double, Double>? = locationHelper.getLastKnownLocation()
 
     override suspend fun sendSms(message: String, contacts: List<Contact>): Int =
@@ -39,6 +44,12 @@ class AndroidEmergencyDispatcher(
         val notification = notificationHelper.buildAlertNotification(detectedWord)
         NotificationManagerCompat.from(context)
             .notify(NotificationHelper.NOTIFICATION_ID_ALERT, notification)
+    }
+
+    override suspend fun showCheckInPrompt(contactName: String, message: String) {
+        val notification = notificationHelper.buildCheckInNotification(contactName, message)
+        NotificationManagerCompat.from(context)
+            .notify(NotificationHelper.NOTIFICATION_ID_CHECK_IN, notification)
     }
 
     override suspend fun logEvent(event: AlertEvent) {

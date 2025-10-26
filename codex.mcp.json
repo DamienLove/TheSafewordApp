@@ -1,0 +1,16 @@
+{
+  "servers": [
+    {
+      "name": "android-studio",
+      "command": [
+        "node",
+        "tools/mcp-android-studio/index.js"
+      ],
+      "cwd": ".",
+      "env": {
+        "JAVA_HOME": "C:\\\\Program Files\\\\Android\\\\Android Studio\\\\jbr",
+        "ANDROID_HOME": "%USERPROFILE%\\\\AppData\\\\Local\\\\Android\\\\Sdk"
+      }
+    }
+  ]
+}

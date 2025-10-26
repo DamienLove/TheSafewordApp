@@ -2,6 +2,7 @@ package com.safeword.ui.contacts
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.safeword.shared.domain.SafeWordEngine
 import com.safeword.shared.domain.model.Contact
 import com.safeword.shared.domain.repository.ContactRepository
 import com.safeword.shared.domain.usecase.DeleteContactUseCase
@@ -17,7 +18,8 @@ import javax.inject.Inject
 class ContactsViewModel @Inject constructor(
     contactRepository: ContactRepository,
     private val upsertContact: UpsertContactUseCase,
-    private val deleteContact: DeleteContactUseCase
+    private val deleteContact: DeleteContactUseCase,
+    private val engine: SafeWordEngine
 ) : ViewModel() {
 
     val contacts: StateFlow<List<Contact>> = contactRepository.observeContacts()
@@ -29,5 +31,12 @@ class ContactsViewModel @Inject constructor(
 
     fun delete(contactId: Long) {
         viewModelScope.launch { deleteContact(contactId) }
+    }
+
+    fun ping(contact: Contact, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val success = engine.sendCheckIn(contact)
+            onResult(success)
+        }
     }
 }

@@ -26,12 +26,15 @@
     <string name="notification_channel_listening">SafeWord Listening</string>
     <string name="notification_channel_alerts">SafeWord Alerts</string>
     <string name="notification_channel_peer">SafeWord Bridge</string>
+    <string name="notification_channel_check_in">SafeWord Check-Ins</string>
     <string name="notification_title_listening">Listening for safe words</string>
     <string name="notification_title_alert">Emergency escalation triggered</string>
     <string name="notification_title_peer">SafeWord Bridge</string>
+    <string name="notification_title_check_in">Check in for %1$s</string>
     <string name="open_settings">Open Settings</string>
     <string name="action_call_contact">Call</string>
     <string name="action_text_contact">Message</string>
+    <string name="action_ping_contact">Ping</string>
     <string name="contact_message_body">Hey %1$s, I need to reach you via SafeWord.</string>
     <string name="contact_action_error">No app found to handle this action.</string>
     <string name="contact_deleted">Deleted %1$s</string>
@@ -63,6 +66,8 @@
     <string name="contact_import_cancelled">Import cancelled</string>
     <string name="contact_permission_denied">SafeWord needs contact access to import people from your phone book.</string>
     <string name="contact_limit_reached">You\'ve reached the %1$d contact limit. Upgrade to SafeWord Pro for more.</string>
+    <string name="contact_ping_prompt">Ping sent. Linked devices will nudge %1$s with a gentle alert.</string>
+    <string name="contact_ping_unavailable">Ping requires at least one linked device running SafeWord.</string>
     <string name="admob_banner_unit">ca-app-pub-5327057757821609/8317446089</string>
     <string name="admob_native_unit">ca-app-pub-5327057757821609/4853677944</string>
     <string name="admob_app_id">ca-app-pub-5327057757821609~9475449237</string>
@@ -84,6 +89,7 @@
     <string name="onboarding_open_battery_settings">Battery optimization settings</string>
     <string name="onboarding_open_dnd_settings">Allow Do Not Disturb overrides</string>
     <string name="learn_more">Learn more</string>
+    <string name="silence_alarm">Silence alarm</string>
     <plurals name="contacts_count">
         <item quantity="one">%d contact configured</item>
         <item quantity="other">%d contacts configured</item>
