@@ -20,6 +20,25 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    val keystorePath = (project.findProperty("ANDROID_KEYSTORE_PATH") as? String)?.takeIf { it.isNotBlank() }
+    val keystorePassword = (project.findProperty("ANDROID_KEYSTORE_PASSWORD") as? String)?.takeIf { it.isNotBlank() }
+    val keyAlias = (project.findProperty("ANDROID_KEY_ALIAS") as? String)?.takeIf { it.isNotBlank() }
+    val keyPassword = (project.findProperty("ANDROID_KEY_PASSWORD") as? String)?.takeIf { it.isNotBlank() }
+    val releaseSigningConfigured =
+        listOf(keystorePath, keystorePassword, keyAlias, keyPassword).all { it != null } &&
+            keystorePath?.let { file(it).exists() } == true
+
+    if (releaseSigningConfigured) {
+        signingConfigs {
+            create("release") {
+                storeFile = file(keystorePath!!)
+                storePassword = keystorePassword
+                this.keyAlias = keyAlias
+                this.keyPassword = keyPassword
+            }
+        }
+    }
+
     flavorDimensions += "edition"
     productFlavors {
         create("free") {
@@ -52,6 +71,11 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            if (releaseSigningConfigured) {
+                signingConfig = signingConfigs.getByName("release")
+            } else {
+                println("Android release signing config not provided; release artifacts will be unsigned.")
+            }
         }
     }
 
