@@ -21,5 +21,11 @@ interface ContactDao {
 
     @Query("SELECT * FROM contacts WHERE id = :id")
     suspend fun getById(id: Long): ContactEntity?
+
+    @Query("SELECT * FROM contacts WHERE phone = :phone LIMIT 1")
+    suspend fun getByPhone(phone: String): ContactEntity?
+
+    @Query("SELECT * FROM contacts ORDER BY createdAt DESC")
+    suspend fun getAll(): List<ContactEntity>
 }
 
