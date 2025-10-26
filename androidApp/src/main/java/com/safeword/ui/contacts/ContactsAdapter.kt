@@ -13,7 +13,8 @@ class ContactsAdapter(
     private val onEdit: (Contact) -> Unit,
     private val onDelete: (Contact) -> Unit,
     private val onCall: (Contact) -> Unit,
-    private val onMessage: (Contact) -> Unit
+    private val onMessage: (Contact) -> Unit,
+    private val onPing: (Contact) -> Unit
 ) : ListAdapter<Contact, ContactsAdapter.ViewHolder>(DiffCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -42,6 +43,7 @@ class ContactsAdapter(
             }
             binding.buttonCall.setOnClickListener { onCall(contact) }
             binding.buttonMessage.setOnClickListener { onMessage(contact) }
+            binding.buttonPing.setOnClickListener { onPing(contact) }
         }
     }
 

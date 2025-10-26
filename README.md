@@ -62,5 +62,29 @@ Native safety application delivering on-device "safe word" voice/SMS detection, 
 - Emergency escalations with retries and logging
 - PeerBridge layer enabling devices to share alert events over local Wi-Fi/Bluetooth without servers
 
+## Prebuilt downloads
+
+### Android
+- **Workflow artifacts (debug)**: Every run of the [Build Mobile Apps](https://github.com/DamienLove/TheSafewordApp/actions/workflows/mobile-build.yml) workflow uploads an `android-apks-debug` artifact containing the latest free and pro debug APKs.
+- **GitHub Releases (signed)**: When a release is published, the workflow signs the free and pro variants and attaches `androidApp-free-release.apk` and `androidApp-pro-release.apk` directly to the release page.
+
+### iOS
+- **Shared XCFramework**: Each workflow run zips `Shared.xcframework` and publishes it as the `shared-xcframework` artifact for reuse in other Apple targets.
+- **Simulator build**: Non-release runs upload `ios-simulator-build`, a zipped `.app` bundle you can sideload into the iOS Simulator.
+- **Signed IPA**: Release runs export a production-signed `SafeWord.ipa`, available both as a workflow artifact (`ios-app-store-ipa`) and as a GitHub release asset.
+
+## Continuous integration overview
+- **Triggering**: The Build Mobile Apps workflow runs on pushes to `main`/`develop`, pull requests, manual dispatches, and published releases.
+- **Android lane**: Builds debug APKs on every run, then (for releases) injects signing credentials from repository secrets to produce distributable APKs and attaches them to the release.
+- **iOS lane**: Always generates the Kotlin Multiplatform framework, simulator build, and (for releases) codesigns an App Store IPA. Release assets are uploaded automatically via the workflow.
+- **Secrets to configure**:  
+  - Android: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`  
+  - iOS: `IOS_CERT_BASE64`, `IOS_CERT_PASSWORD`, `IOS_PROVISION_PROFILE_BASE64`, `IOS_PROVISIONING_PROFILE_SPECIFIER`, `IOS_CODE_SIGN_IDENTITY`, `IOS_TEAM_ID`, optional `IOS_BUNDLE_ID`
+
+## Custom siren & alert controls
+- Place a branded siren at `androidApp/src/main/res/raw/safeword_alert.(ogg|mp3)` to override the system alarm tone. The app will loop that audio as the emergency alert.
+- Alert notifications now include a **Silence alarm** action that stops playback instantly without waiting for timers to expire, and linked SafeWord peers can exchange gentle *Pings* that play a softer tone when you tap the new Ping button on a contact card.
+- Direct hooks into “Hey Google” or “Hey Siri” hotwords are not permitted by platform policies; SafeWord continues to run its own on-device recognizer with throttled restarts to minimise beeps and battery drain.
+
 ## License
-Proprietary — internal use only.
+Proprietary - internal use only.

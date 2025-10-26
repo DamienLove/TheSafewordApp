@@ -72,7 +72,8 @@ class ContactsActivity : AppCompatActivity() {
             onEdit = { contact -> showContactDialog(contact) },
             onDelete = { contact -> deleteContact(contact) },
             onCall = { contact -> callContact(contact) },
-            onMessage = { contact -> messageContact(contact) }
+            onMessage = { contact -> messageContact(contact) },
+            onPing = { contact -> pingContact(contact) }
         )
         binding.listContacts.layoutManager = LinearLayoutManager(this)
         binding.listContacts.adapter = adapter
@@ -221,6 +222,17 @@ class ContactsActivity : AppCompatActivity() {
             putExtra("sms_body", getString(R.string.contact_message_body, contact.name))
         }
         launchContactIntent(intent)
+    }
+
+    private fun pingContact(contact: Contact) {
+        viewModel.ping(contact) { success ->
+            val message = if (success) {
+                getString(R.string.contact_ping_prompt, contact.name)
+            } else {
+                getString(R.string.contact_ping_unavailable)
+            }
+            Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
+        }
     }
 
     private fun launchContactIntent(intent: Intent) {

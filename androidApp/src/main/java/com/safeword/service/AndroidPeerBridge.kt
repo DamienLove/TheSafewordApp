@@ -58,7 +58,7 @@ class AndroidPeerBridge(
         stateFlow.value = PeerBridgeState.Idle
     }
 
-    override suspend fun broadcast(event: PeerBridgeEvent.AlertBroadcast) {
+    override suspend fun broadcast(event: PeerBridgeEvent) {
         withContext(Dispatchers.IO) {
             runCatching {
                 MulticastSocket().use { socket ->

@@ -14,6 +14,7 @@ import com.safeword.util.NotificationHelper
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,6 +26,8 @@ class VoiceRecognitionService : Service(), RecognitionListener {
 
     private var speechRecognizer: SpeechRecognizer? = null
     private val serviceScope = CoroutineScope(Dispatchers.Main)
+    private var shouldRestart = true
+    private var isListening = false
 
     override fun onCreate() {
         super.onCreate()
@@ -43,6 +46,8 @@ class VoiceRecognitionService : Service(), RecognitionListener {
     }
 
     override fun onDestroy() {
+        shouldRestart = false
+        isListening = false
         speechRecognizer?.destroy()
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
         super.onDestroy()
@@ -51,11 +56,15 @@ class VoiceRecognitionService : Service(), RecognitionListener {
     override fun onBind(intent: Intent?): IBinder? = null
 
     private fun startListening() {
+        if (!shouldRestart || isListening) return
         val recognizerIntent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
             putExtra(RecognizerIntent.EXTRA_CALLING_PACKAGE, packageName)
             putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
             putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_COMPLETE_SILENCE_LENGTH_MILLIS, 2500L)
+            putExtra(RecognizerIntent.EXTRA_SPEECH_INPUT_POSSIBLY_COMPLETE_SILENCE_LENGTH_MILLIS, 1500L)
         }
+        isListening = true
         speechRecognizer?.startListening(recognizerIntent)
     }
 
@@ -66,8 +75,20 @@ class VoiceRecognitionService : Service(), RecognitionListener {
     override fun onEndOfSpeech() = Unit
 
     override fun onError(error: Int) {
-        // Restart listening on recoverable errors.
-        startListening()
+        isListening = false
+        if (!shouldRestart) return
+        if (error == SpeechRecognizer.ERROR_CLIENT) {
+            // Client errors typically mean the recognizer is shutting down; avoid tight loops.
+            serviceScope.launch {
+                delay(RESTART_DELAY_MS)
+                startListening()
+            }
+            return
+        }
+        serviceScope.launch {
+            delay(RESTART_DELAY_MS)
+            startListening()
+        }
     }
 
     override fun onResults(results: Bundle?) {
@@ -75,7 +96,13 @@ class VoiceRecognitionService : Service(), RecognitionListener {
         matches?.firstOrNull()?.let { phrase ->
             serviceScope.launch { engine.processTranscript(phrase) }
         }
-        startListening()
+        isListening = false
+        if (shouldRestart) {
+            serviceScope.launch {
+                delay(RESTART_DELAY_MS)
+                startListening()
+            }
+        }
     }
 
     override fun onPartialResults(partialResults: Bundle?) {
@@ -88,6 +115,8 @@ class VoiceRecognitionService : Service(), RecognitionListener {
     override fun onEvent(eventType: Int, params: Bundle?) = Unit
 
     companion object {
+        private const val RESTART_DELAY_MS = 1_500L
+
         fun start(context: Context) {
             val intent = Intent(context, VoiceRecognitionService::class.java)
             context.startForegroundService(intent)

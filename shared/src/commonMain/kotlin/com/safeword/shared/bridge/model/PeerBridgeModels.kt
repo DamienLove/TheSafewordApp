@@ -28,4 +28,13 @@ sealed interface PeerBridgeEvent {
     @Serializable
     @SerialName("ack")
     data class Acknowledgement(val peerId: String, val alertId: Long?) : PeerBridgeEvent
+
+    @Serializable
+    @SerialName("check_in")
+    data class CheckIn(
+        val contactName: String,
+        val contactPhone: String?,
+        val message: String,
+        val timestampMillis: Long
+    ) : PeerBridgeEvent
 }

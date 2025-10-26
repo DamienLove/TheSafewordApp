@@ -1,0 +1,40 @@
+SafeWord Delivery Notes
+=======================
+
+Last updated: 2025-10-26 (evening)
+
+Android Emulator
+----------------
+- Launched AVD `Medium_Phone_API_36.1` and deployed the latest `freeDebug` build using `./gradlew androidApp:installFreeDebug`.
+- Started the app via `adb shell am start -n com.safeword.free.debug/com.safeword.ui.MainActivity`; the emulator remains running for manual inspection.
+- Alarm tests now display a “Silence alarm” action in the alert notification; tapping it stops playback instantly (via `AlarmSilenceReceiver`).
+
+GitHub Packages & Releases
+--------------------------
+- Workflow `.github/workflows/mobile-build.yml` now builds on push/PR/release/dispatch.
+- Debug artifacts:
+  - `android-apks-debug` (free/pro APKs)
+  - `shared-xcframework` (zipped XCFramework)
+  - `ios-simulator-build` (zipped simulator `.app`)
+- Release artifacts (triggered on GitHub release publish):
+  - Signed APKs uploaded as release assets and workflow artifact `android-apks-release`
+  - Signed App Store `SafeWord.ipa` attached to releases
+
+Contact Pings & Gentle Alerts
+----------------------------
+- Contact cards now expose one-tap **Call**, **Message**, and **Ping** actions for quicker outreach.
+- Pings broadcast a gentle alert to linked SafeWord peers (~60% volume) and display a check-in notification.
+- Custom audio hooks: place `androidApp/src/main/res/raw/safeword_alert.(ogg|mp3)` for the siren loop and optional `safeword_ping.(ogg|mp3)` for the ping tone.
+
+Signing Secrets Required
+------------------------
+- Android: `ANDROID_KEYSTORE_BASE64`, `ANDROID_KEYSTORE_PASSWORD`, `ANDROID_KEY_ALIAS`, `ANDROID_KEY_PASSWORD`
+- iOS: `IOS_CERT_BASE64`, `IOS_CERT_PASSWORD`, `IOS_PROVISION_PROFILE_BASE64`, `IOS_PROVISIONING_PROFILE_SPECIFIER`, `IOS_CODE_SIGN_IDENTITY`, `IOS_TEAM_ID`, optional `IOS_BUNDLE_ID`
+
+Next Actions
+------------
+- Populate the secrets listed above before publishing a GitHub release.
+- For emulator testing, use `adb logcat` to monitor speech triggers and SMS receivers in real time.
+- Supply custom audio under `androidApp/src/main/res/raw/` (`safeword_alert.*` for siren, `safeword_ping.*` for gentle pings) to brand the experience; the app falls back to system tones otherwise.
+
+
