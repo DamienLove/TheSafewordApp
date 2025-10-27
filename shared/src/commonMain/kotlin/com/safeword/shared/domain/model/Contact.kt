@@ -9,6 +9,8 @@ data class Contact(
     val phone: String,
     val email: String? = null,
     val createdAtMillis: Long,
-    val isSafewordPeer: Boolean = false,
+    val linkStatus: ContactLinkStatus = ContactLinkStatus.UNLINKED,
     val planTier: PlanTier? = null
-)
+) {
+    val isSafewordPeer: Boolean get() = linkStatus == ContactLinkStatus.LINKED
+}

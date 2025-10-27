@@ -40,10 +40,16 @@ class NotificationHelper(
                 context.getString(R.string.notification_channel_check_in),
                 NotificationManager.IMPORTANCE_DEFAULT
             )
+            val link = NotificationChannel(
+                CHANNEL_LINK,
+                context.getString(R.string.notification_channel_link),
+                NotificationManager.IMPORTANCE_DEFAULT
+            )
             manager.createNotificationChannel(listening)
             manager.createNotificationChannel(alerts)
             manager.createNotificationChannel(peer)
             manager.createNotificationChannel(checkIn)
+            manager.createNotificationChannel(link)
         }
     }
 
@@ -90,6 +96,16 @@ class NotificationHelper(
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
 
+    fun buildLinkNotification(contactName: String, message: String): Notification =
+        NotificationCompat.Builder(context, CHANNEL_LINK)
+            .setSmallIcon(R.drawable.ic_stat_name)
+            .setContentTitle(context.getString(R.string.notification_title_link, contactName))
+            .setContentText(message)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(message))
+            .setAutoCancel(true)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .build()
+
     fun cancelAlertNotification() {
         manager.cancel(NOTIFICATION_ID_ALERT)
     }
@@ -107,10 +123,12 @@ class NotificationHelper(
         const val CHANNEL_ALERTS = "safeword_alerts"
         const val CHANNEL_PEER = "safeword_peer"
         const val CHANNEL_CHECK_IN = "safeword_check_in"
+        const val CHANNEL_LINK = "safeword_link"
 
         const val NOTIFICATION_ID_LISTENING = 1
         const val NOTIFICATION_ID_ALERT = 2
         const val NOTIFICATION_ID_PEER = 3
         const val NOTIFICATION_ID_CHECK_IN = 4
+        const val NOTIFICATION_ID_LINK = 5
     }
 }

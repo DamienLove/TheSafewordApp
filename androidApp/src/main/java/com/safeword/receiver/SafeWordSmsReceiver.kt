@@ -9,6 +9,7 @@ import android.util.Log
 import com.safeword.BuildConfig
 import com.safeword.shared.domain.SafeWordEngine
 import com.safeword.shared.domain.model.Contact
+import com.safeword.shared.domain.model.ContactLinkStatus
 import com.safeword.shared.domain.repository.ContactRepository
 import com.safeword.shared.domain.usecase.UpsertContactUseCase
 import dagger.hilt.android.AndroidEntryPoint
@@ -45,7 +46,14 @@ class SafeWordSmsReceiver : BroadcastReceiver() {
         if (phone.isBlank()) return
         val normalisedPhone = PhoneNumberUtils.normalizeNumber(phone) ?: phone.filterNot { it.isWhitespace() }
         val existing = contactRepository.findByPhone(normalisedPhone)
-        if (existing != null) return
+        if (existing != null) {
+            if (existing.linkStatus != ContactLinkStatus.LINKED) {
+                runCatching {
+                    upsertContactUseCase(existing.copy(linkStatus = ContactLinkStatus.LINKED))
+                }.onFailure { Log.e(TAG, "Failed to upgrade contact link status for $normalisedPhone", it) }
+            }
+            return
+        }
 
         val limit = BuildConfig.CONTACT_LIMIT
         if (limit > 0) {
@@ -63,8 +71,8 @@ class SafeWordSmsReceiver : BroadcastReceiver() {
             name = contactName,
             phone = normalisedPhone,
             email = null,
-            createdAtMillis = 0L,
-            isSafewordPeer = true
+            createdAtMillis = System.currentTimeMillis(),
+            linkStatus = ContactLinkStatus.LINKED
         )
         runCatching { upsertContactUseCase(contact) }
             .onFailure { Log.e(TAG, "Failed to auto-add contact from SMS", it) }

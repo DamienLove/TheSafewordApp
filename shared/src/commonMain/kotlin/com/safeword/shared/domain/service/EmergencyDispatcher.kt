@@ -11,5 +11,6 @@ interface EmergencyDispatcher {
     suspend fun sendSms(message: String, contacts: List<Contact>): Int
     suspend fun showEmergencyPrompt(detectedWord: String)
     suspend fun showCheckInPrompt(contactName: String, message: String)
+    suspend fun showLinkNotification(contactName: String, message: String)
     suspend fun logEvent(event: AlertEvent)
 }

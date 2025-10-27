@@ -51,11 +51,15 @@ class IosEmergencyDispatcher : EmergencyDispatcher {
     }
 
     override suspend fun showEmergencyPrompt(detectedWord: String) {
-        showNotification("SafeWord Alert", "Detected \"\"")
+        showNotification("SafeWord Alert", "Detected \"$detectedWord\"")
     }
 
     override suspend fun showCheckInPrompt(contactName: String, message: String) {
-        showNotification("Check in request for ", message)
+        showNotification("Check-in request for $contactName", message)
+    }
+
+    override suspend fun showLinkNotification(contactName: String, message: String) {
+        showNotification("SafeWord link update: $contactName", message)
     }
 
     override suspend fun logEvent(event: AlertEvent) {

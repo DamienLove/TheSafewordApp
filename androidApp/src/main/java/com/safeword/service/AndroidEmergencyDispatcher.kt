@@ -52,6 +52,12 @@ class AndroidEmergencyDispatcher(
             .notify(NotificationHelper.NOTIFICATION_ID_CHECK_IN, notification)
     }
 
+    override suspend fun showLinkNotification(contactName: String, message: String) {
+        val notification = notificationHelper.buildLinkNotification(contactName, message)
+        NotificationManagerCompat.from(context)
+            .notify(NotificationHelper.NOTIFICATION_ID_LINK, notification)
+    }
+
     override suspend fun logEvent(event: AlertEvent) {
         // Could persist to analytics/logcat here. For now we keep the notification visible.
     }
