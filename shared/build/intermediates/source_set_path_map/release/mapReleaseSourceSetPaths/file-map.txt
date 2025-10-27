@@ -1,9 +1,0 @@
-com.safeword.shared-pngs-0 C:\Projects\Safeword\shared\build\generated\res\pngs\release
-com.safeword.shared-resValues-1 C:\Projects\Safeword\shared\build\generated\res\resValues\release
-com.safeword.shared-mergeReleaseResources-2 C:\Projects\Safeword\shared\build\intermediates\incremental\release\mergeReleaseResources\merged.dir
-com.safeword.shared-mergeReleaseResources-3 C:\Projects\Safeword\shared\build\intermediates\incremental\release\mergeReleaseResources\stripped.dir
-com.safeword.shared-release-4 C:\Projects\Safeword\shared\build\intermediates\merged_res\release\mergeReleaseResources
-com.safeword.shared-androidMain-5 C:\Projects\Safeword\shared\src\androidMain\res
-com.safeword.shared-androidRelease-6 C:\Projects\Safeword\shared\src\androidRelease\res
-com.safeword.shared-main-7 C:\Projects\Safeword\shared\src\main\res
-com.safeword.shared-release-8 C:\Projects\Safeword\shared\src\release\res
