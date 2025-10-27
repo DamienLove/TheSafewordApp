@@ -1,0 +1,17 @@
+# Build outputs
+/build/
+/androidApp/build/
+/shared/build/
+
+# Gradle caches
+/.gradle/
+/.kotlin/
+
+# IDE / tooling
+/.idea/
+*.iml
+
+# OS artifacts
+Thumbs.db
+Desktop.ini
+.DS_Store
