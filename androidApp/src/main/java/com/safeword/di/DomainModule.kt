@@ -12,7 +12,6 @@ import com.safeword.shared.domain.repository.SettingsGateway
 import com.safeword.shared.domain.service.EmergencyDispatcher
 import com.safeword.shared.domain.usecase.DeleteContactUseCase
 import com.safeword.shared.domain.usecase.ToggleIncludeLocationUseCase
-import com.safeword.shared.domain.usecase.ToggleIncomingModeUseCase
 import com.safeword.shared.domain.usecase.ToggleListeningUseCase
 import com.safeword.shared.domain.usecase.TogglePlaySirenUseCase
 import com.safeword.shared.domain.usecase.ToggleTestModeUseCase
@@ -125,10 +124,6 @@ object DomainModule {
     @Provides
     fun provideToggleListeningUseCase(settingsGateway: SettingsGateway) =
         ToggleListeningUseCase(settingsGateway)
-
-    @Provides
-    fun provideToggleIncomingModeUseCase(settingsGateway: SettingsGateway) =
-        ToggleIncomingModeUseCase(settingsGateway)
 
     @Provides
     fun provideToggleIncludeLocationUseCase(settingsGateway: SettingsGateway) =

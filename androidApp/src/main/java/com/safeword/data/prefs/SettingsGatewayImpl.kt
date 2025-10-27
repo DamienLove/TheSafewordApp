@@ -29,7 +29,6 @@ class SettingsGatewayImpl(
             prefs[SAFE_WORD_TWO] = updated.safeWordTwo
             prefs[SENSITIVITY] = updated.sensitivity
             prefs[LISTENING_ENABLED] = updated.listeningEnabled
-            prefs[INCOMING_MODE] = updated.incomingMode
             prefs[INCLUDE_LOCATION] = updated.includeLocation
             prefs[PLAY_SIREN] = updated.playSiren
             prefs[TEST_MODE] = updated.testMode
@@ -41,7 +40,6 @@ class SettingsGatewayImpl(
         safeWordTwo = this[SAFE_WORD_TWO] ?: Defaults.settings.safeWordTwo,
         sensitivity = this[SENSITIVITY] ?: Defaults.settings.sensitivity,
         listeningEnabled = this[LISTENING_ENABLED] ?: Defaults.settings.listeningEnabled,
-        incomingMode = this[INCOMING_MODE] ?: Defaults.settings.incomingMode,
         includeLocation = this[INCLUDE_LOCATION] ?: Defaults.settings.includeLocation,
         playSiren = this[PLAY_SIREN] ?: Defaults.settings.playSiren,
         testMode = this[TEST_MODE] ?: Defaults.settings.testMode
@@ -52,7 +50,6 @@ class SettingsGatewayImpl(
         val SAFE_WORD_TWO = stringPreferencesKey("safe_word_2")
         val SENSITIVITY = intPreferencesKey("sensitivity")
         val LISTENING_ENABLED = booleanPreferencesKey("listening_enabled")
-        val INCOMING_MODE = booleanPreferencesKey("incoming_mode_enabled")
         val INCLUDE_LOCATION = booleanPreferencesKey("include_location")
         val PLAY_SIREN = booleanPreferencesKey("play_siren")
         val TEST_MODE = booleanPreferencesKey("test_mode")

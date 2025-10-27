@@ -1,6 +1,7 @@
 SafeWord Delivery Notes
 =======================
 
+
 Last updated: 2025-10-26 (evening consolidated)
 
 Environment Setup
@@ -33,7 +34,7 @@ Product Flavours
 ----------------
 - `free` (applicationId suffix `.free`): ads enabled, Incoming Mode disabled, three-contact cap, ringer restore after 10 minutes.
 - `pro` (suffix `.pro`): ads disabled, Incoming Mode enabled, unlimited contacts, ringer restore after 5 minutes.
-- Runtime behaviour controlled via `BuildConfig` flags (`FEATURE_ADS_ENABLED`, `FEATURE_INCOMING_SMS`, `CONTACT_LIMIT`, `RINGER_RESTORE_DELAY_MINUTES`).
+- Runtime behaviour controlled via `BuildConfig` flags (`FEATURE_ADS_ENABLED`, `CONTACT_LIMIT`, `RINGER_RESTORE_DELAY_MINUTES`).
 
 Build Commands
 --------------
@@ -105,6 +106,7 @@ Dashboard UI Refresh
 - New drawable assets back the glow/button/card visuals; palette tweaked in `colors.xml` and gradients updated in `bg_app.xml`.
 - Listening toggle moved to the card tap handler in `MainActivity.kt`; permission handling now gates microphone/notification access and the glow visibility updates via `isVisible`.
 - Safe Word wizard access is restored as a primary action tile alongside Contacts and Settings.
+- Native ad card is scroll-friendly, carries a dismiss control, and no longer blocks access to dashboard actions.
 
 Signing Secrets Required
 ------------------------

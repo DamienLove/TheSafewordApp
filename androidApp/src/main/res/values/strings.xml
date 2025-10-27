@@ -49,6 +49,7 @@
     <string name="main_listening_subtitle_off">Tap to resume monitoring whenever you feel ready.</string>
     <string name="main_status_listening_chip_on">Listening live</string>
     <string name="main_status_listening_chip_off">Listening paused</string>
+    <string name="close_ad">Close ad</string>
     <string name="main_mode_label">Mode</string>
     <string name="main_incoming_description">Listen for SafeWords from your trusted contacts.</string>
     <string name="main_outgoing_description">Send alerts from this device when you speak the SafeWord.</string>
@@ -57,9 +58,18 @@
     <string name="main_action_contacts_title">Contacts</string>
     <string name="main_action_contacts_subtitle">Call or message the people you trust.</string>
     <string name="main_action_settings_title">Pro settings</string>
-    <string name="main_action_settings_subtitle">Fine‑tune alerts, siren, and automations.</string>
+    <string name="main_action_settings_subtitle">Fine-tune alerts, siren, and automations.</string>
     <string name="main_status_peer_title">Peer link</string>
     <string name="main_status_contacts_title">Support crew</string>
+    <string name="link_status_disconnected">No SafeWord friends linked yet.</string>
+    <plurals name="link_status_waiting">
+        <item quantity="one">Waiting for SafeWord connection (%d friend linked).</item>
+        <item quantity="other">Waiting for SafeWord connection (%d friends linked).</item>
+    </plurals>
+    <plurals name="link_status_active">
+        <item quantity="one">SafeWord link active with %d friend.</item>
+        <item quantity="other">SafeWord link active with %d friends.</item>
+    </plurals>
     <string name="contact_e164_hint">Make sure phone numbers use international E.164 format.</string>
     <string name="contact_phone_helper">E.164 format helps avoid delivery issues</string>
     <string name="contact_import_from_device">Import from Contacts</string>
@@ -74,6 +84,17 @@
     <string name="contact_limit_reached">You\'ve reached the %1$d contact limit. Upgrade to SafeWord Pro for more.</string>
     <string name="contact_ping_prompt">Ping sent. Linked devices will nudge %1$s with a gentle alert.</string>
     <string name="contact_ping_unavailable">Ping requires at least one linked device running SafeWord.</string>
+    <string name="peer_badge_content_description">SafeWord contact</string>
+    <string name="contact_mark_safeword_peer">Mark as SafeWord friend</string>
+    <string name="contact_action_call_title">Call %1$s</string>
+    <string name="contact_action_message_title">Message %1$s</string>
+    <string name="contact_action_mode_emergency">Emergency</string>
+    <string name="contact_action_mode_non_emergency">Non-emergency check-in</string>
+    <string name="contact_action_proceed">Continue</string>
+    <string name="contact_signal_sent">SafeWord alert sent to %1$s.</string>
+    <string name="contact_signal_not_sent">%1$s is not ready for SafeWord alerts.</string>
+    <string name="contact_signal_unlinked_hint">Mark this contact as a SafeWord friend to send pre-alerts automatically.</string>
+    <string name="contact_message_body_non_emergency">Hey %1$s, checking in via SafeWord. No emergency.</string>
     <string name="admob_banner_unit">ca-app-pub-5327057757821609/8317446089</string>
     <string name="admob_native_unit">ca-app-pub-5327057757821609/4853677944</string>
     <string name="admob_app_id">ca-app-pub-5327057757821609~9475449237</string>
@@ -101,3 +122,4 @@
         <item quantity="other">%d contacts configured</item>
     </plurals>
 </resources>
+

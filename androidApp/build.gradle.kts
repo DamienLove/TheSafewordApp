@@ -3,7 +3,9 @@ plugins {
     kotlin("android")
     kotlin("kapt")
     id("org.jetbrains.kotlin.plugin.serialization")
+    id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.dagger.hilt.android")
+
 }
 
 android {
@@ -46,7 +48,6 @@ android {
             applicationIdSuffix = ".free"
             versionNameSuffix = "-free"
             buildConfigField("boolean", "FEATURE_ADS_ENABLED", "true")
-            buildConfigField("boolean", "FEATURE_INCOMING_SMS", "false")
             buildConfigField("long", "RINGER_RESTORE_DELAY_MINUTES", "10L")
             buildConfigField("int", "CONTACT_LIMIT", "3")
         }
@@ -55,7 +56,6 @@ android {
             applicationIdSuffix = ".pro"
             versionNameSuffix = "-pro"
             buildConfigField("boolean", "FEATURE_ADS_ENABLED", "false")
-            buildConfigField("boolean", "FEATURE_INCOMING_SMS", "true")
             buildConfigField("long", "RINGER_RESTORE_DELAY_MINUTES", "5L")
             buildConfigField("int", "CONTACT_LIMIT", "-1")
         }
@@ -90,6 +90,11 @@ android {
 
     buildFeatures {
         viewBinding = true
+        compose = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = libs.versions.compose.compiler.get()
     }
 
     packaging {
@@ -102,15 +107,26 @@ android {
 dependencies {
     implementation(project(":shared"))
 
+    implementation(platform(libs.androidx.compose.bom))
+    androidTestImplementation(platform(libs.androidx.compose.bom))
+
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)
     implementation(libs.google.material)
     implementation(libs.androidx.lifecycle.runtime)
     implementation(libs.androidx.lifecycle.viewmodel)
+    implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.navigation.fragment)
     implementation(libs.androidx.navigation.ui)
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.compose.ui)
+    implementation(libs.androidx.compose.ui.tooling.preview)
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.material3)
+    implementation(libs.androidx.compose.material3.window.size)
+    implementation(libs.androidx.compose.material.icons.extended)
     kapt(libs.androidx.room.compiler)
     implementation(libs.androidx.work.runtime)
     implementation(libs.androidx.datastore)
@@ -126,6 +142,10 @@ dependencies {
 
     implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
+
+    debugImplementation(libs.androidx.compose.ui.tooling)
+    debugImplementation(libs.androidx.compose.ui.test.manifest)
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
 
     testImplementation(kotlin("test"))
 }

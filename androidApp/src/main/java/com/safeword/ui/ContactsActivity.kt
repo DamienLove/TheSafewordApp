@@ -24,6 +24,7 @@ import com.safeword.R
 import com.safeword.databinding.ActivityContactsBinding
 import com.safeword.databinding.DialogContactBinding
 import com.safeword.shared.domain.model.Contact
+import com.safeword.shared.domain.model.ContactEngagementType
 import com.safeword.ui.contacts.ContactsAdapter
 import com.safeword.ui.contacts.ContactsViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -98,6 +99,7 @@ class ContactsActivity : AppCompatActivity() {
         dialogBinding.inputName.setText(existing?.name.orEmpty())
         dialogBinding.inputPhone.setText(existing?.phone.orEmpty())
         dialogBinding.inputEmail.setText(existing?.email.orEmpty())
+        dialogBinding.switchSafewordPeer.isChecked = existing?.isSafewordPeer == true
         dialogBinding.textTitle.text = if (existing == null) {
             getString(R.string.add_contact)
         } else {
@@ -112,12 +114,14 @@ class ContactsActivity : AppCompatActivity() {
                 val rawPhone = dialogBinding.inputPhone.text?.toString().orEmpty()
                 val phone = PhoneNumberUtils.normalizeNumber(rawPhone) ?: rawPhone
                 val email = dialogBinding.inputEmail.text?.toString()
+                val safewordPeer = dialogBinding.switchSafewordPeer.isChecked
                 val contact = Contact(
                     id = existing?.id,
                     name = name,
                     phone = phone,
                     email = email,
-                    createdAtMillis = existing?.createdAtMillis ?: System.currentTimeMillis()
+                    createdAtMillis = existing?.createdAtMillis ?: System.currentTimeMillis(),
+                    isSafewordPeer = safewordPeer
                 )
                 viewModel.save(contact)
                 dialog.dismiss()
@@ -213,15 +217,38 @@ class ContactsActivity : AppCompatActivity() {
         val intent = Intent(Intent.ACTION_DIAL).apply {
             data = Uri.parse("tel:${contact.phone}")
         }
-        launchContactIntent(intent)
+        if (contact.isSafewordPeer) {
+            showContactActionDialog(contact, ContactEngagementType.CALL) { _ ->
+                launchContactIntent(intent)
+            }
+        } else {
+            launchContactIntent(intent)
+            Snackbar.make(binding.root, R.string.contact_signal_unlinked_hint, Snackbar.LENGTH_SHORT).show()
+        }
     }
 
     private fun messageContact(contact: Contact) {
-        val intent = Intent(Intent.ACTION_SENDTO).apply {
-            data = Uri.parse("smsto:${contact.phone}")
-            putExtra("sms_body", getString(R.string.contact_message_body, contact.name))
+        if (contact.isSafewordPeer) {
+            showContactActionDialog(contact, ContactEngagementType.TEXT) { emergency ->
+                val template = if (emergency) {
+                    R.string.contact_message_body
+                } else {
+                    R.string.contact_message_body_non_emergency
+                }
+                val intent = Intent(Intent.ACTION_SENDTO).apply {
+                    data = Uri.parse("smsto:${contact.phone}")
+                    putExtra("sms_body", getString(template, contact.name))
+                }
+                launchContactIntent(intent)
+            }
+        } else {
+            val intent = Intent(Intent.ACTION_SENDTO).apply {
+                data = Uri.parse("smsto:${contact.phone}")
+                putExtra("sms_body", getString(R.string.contact_message_body, contact.name))
+            }
+            launchContactIntent(intent)
+            Snackbar.make(binding.root, R.string.contact_signal_unlinked_hint, Snackbar.LENGTH_SHORT).show()
         }
-        launchContactIntent(intent)
     }
 
     private fun pingContact(contact: Contact) {
@@ -233,6 +260,43 @@ class ContactsActivity : AppCompatActivity() {
             }
             Snackbar.make(binding.root, message, Snackbar.LENGTH_LONG).show()
         }
+    }
+
+    private fun showContactActionDialog(
+        contact: Contact,
+        type: ContactEngagementType,
+        onProceed: (Boolean) -> Unit
+    ) {
+        var selectedIndex = 0
+        val options = arrayOf(
+            getString(R.string.contact_action_mode_emergency),
+            getString(R.string.contact_action_mode_non_emergency)
+        )
+        val title = if (type == ContactEngagementType.CALL) {
+            getString(R.string.contact_action_call_title, contact.name)
+        } else {
+            getString(R.string.contact_action_message_title, contact.name)
+        }
+        AlertDialog.Builder(this)
+            .setTitle(title)
+            .setSingleChoiceItems(options, selectedIndex) { _, which ->
+                selectedIndex = which
+            }
+            .setPositiveButton(R.string.contact_action_proceed) { dialog, _ ->
+                val emergency = selectedIndex == 0
+                viewModel.sendContactSignal(contact, type, emergency) { sent ->
+                    val feedback = if (sent) {
+                        getString(R.string.contact_signal_sent, contact.name)
+                    } else {
+                        getString(R.string.contact_signal_not_sent, contact.name)
+                    }
+                    Snackbar.make(binding.root, feedback, Snackbar.LENGTH_SHORT).show()
+                    onProceed(emergency)
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     private fun launchContactIntent(intent: Intent) {

@@ -40,7 +40,8 @@ class ContactRepositoryImpl(
         name = name,
         phone = phone,
         email = email,
-        createdAtMillis = createdAt
+        createdAtMillis = createdAt,
+        isSafewordPeer = safewordPeer
     )
 
     private fun Contact.toEntity(): ContactEntity = ContactEntity(
@@ -48,7 +49,7 @@ class ContactRepositoryImpl(
         name = name,
         phone = phone,
         email = email,
-        createdAt = createdAtMillis
+        createdAt = createdAtMillis,
+        safewordPeer = isSafewordPeer
     )
 }
-

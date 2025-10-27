@@ -1,4 +1,5 @@
 [versions]
+kotlin = "2.0.0"
 androidx-core = "1.13.0"
 androidx-appcompat = "1.6.1"
 androidx-lifecycle = "2.7.0"
@@ -12,6 +13,10 @@ ktor = "2.3.10"
 datastore = "1.1.1"
 hilt = "2.50"
 accompanist = "0.34.0"
+kotlinx-compose-bom = "2024.04.00"
+compose-compiler = "1.5.12-rc02"
+activity-compose = "1.8.2"
+material3-window-size = "1.1.0"
 kotlinx-datetime = "0.5.0"
 play-services-location = "21.0.1"
 
@@ -42,3 +47,15 @@ hilt-compiler = { module = "com.google.dagger:hilt-android-compiler", version.re
 
 accompanist-permissions = { module = "com.google.accompanist:accompanist-permissions", version.ref = "accompanist" }
 play-services-location = { module = "com.google.android.gms:play-services-location", version.ref = "play-services-location" }
+androidx-compose-bom = { module = "androidx.compose:compose-bom", version.ref = "kotlinx-compose-bom" }
+androidx-compose-ui = { module = "androidx.compose.ui:ui" }
+androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling" }
+androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+androidx-compose-foundation = { module = "androidx.compose.foundation:foundation" }
+androidx-compose-material3 = { module = "androidx.compose.material3:material3" }
+androidx-compose-material3-window-size = { module = "androidx.compose.material3:material3-window-size-class", version.ref = "material3-window-size" }
+androidx-compose-material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
+androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activity-compose" }
+androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "androidx-lifecycle" }
+androidx-compose-ui-test-junit4 = { module = "androidx.compose.ui:ui-test-junit4" }
+androidx-compose-ui-test-manifest = { module = "androidx.compose.ui:ui-test-manifest" }

@@ -33,14 +33,6 @@ class ToggleListeningUseCase(
     }
 }
 
-class ToggleIncomingModeUseCase(
-    private val settingsGateway: SettingsGateway
-) {
-    suspend operator fun invoke(incomingMode: Boolean) {
-        settingsGateway.update { it.copy(incomingMode = incomingMode) }
-    }
-}
-
 class ToggleIncludeLocationUseCase(
     private val settingsGateway: SettingsGateway
 ) {
@@ -64,4 +56,3 @@ class ToggleTestModeUseCase(
         settingsGateway.update { it.copy(testMode = enabled) }
     }
 }
-

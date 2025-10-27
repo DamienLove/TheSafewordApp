@@ -3,6 +3,7 @@ package com.safeword.ui.contacts
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -30,6 +31,7 @@ class ContactsAdapter(
         fun bind(contact: Contact) {
             binding.textName.text = contact.name
             binding.textPhone.text = contact.phone
+            binding.imagePeerBadge.isVisible = contact.isSafewordPeer
             if (contact.email.isNullOrBlank()) {
                 binding.textEmail.visibility = View.GONE
             } else {

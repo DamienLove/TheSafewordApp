@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.safeword.shared.bridge.model.PeerBridgeState
 import com.safeword.shared.domain.SafeWordEngine
-import com.safeword.shared.domain.usecase.ToggleIncomingModeUseCase
 import com.safeword.shared.domain.usecase.ToggleListeningUseCase
 import com.safeword.shared.domain.usecase.ToggleTestModeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +18,6 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val engine: SafeWordEngine,
     private val toggleListening: ToggleListeningUseCase,
-    private val toggleIncomingMode: ToggleIncomingModeUseCase,
     private val toggleTestMode: ToggleTestModeUseCase
 ) : ViewModel() {
 
@@ -28,8 +26,8 @@ class MainViewModel @Inject constructor(
             MainUiState(
                 listeningEnabled = dashboard.settings?.listeningEnabled ?: false,
                 safeWordConfigured = dashboard.settings?.isConfigured ?: false,
-                incomingMode = dashboard.settings?.incomingMode ?: true,
-                contacts = dashboard.contacts?.size ?: 0,
+                safewordContacts = dashboard.contacts?.count { it.isSafewordPeer } ?: 0,
+                totalContacts = dashboard.contacts?.size ?: 0,
                 peerState = dashboard.bridgeState
             )
         }
@@ -43,10 +41,6 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch { toggleListening(enabled) }
     }
 
-    fun setModeIncoming(incoming: Boolean) {
-        viewModelScope.launch { toggleIncomingMode(incoming) }
-    }
-
     fun setTestMode(enabled: Boolean) {
         viewModelScope.launch { toggleTestMode(enabled) }
     }
@@ -55,7 +49,7 @@ class MainViewModel @Inject constructor(
 data class MainUiState(
     val listeningEnabled: Boolean = false,
     val safeWordConfigured: Boolean = false,
-    val incomingMode: Boolean = true,
-    val contacts: Int = 0,
+    val safewordContacts: Int = 0,
+    val totalContacts: Int = 0,
     val peerState: PeerBridgeState = PeerBridgeState.Idle
 )

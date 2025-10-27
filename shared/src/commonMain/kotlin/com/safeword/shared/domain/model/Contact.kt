@@ -8,6 +8,6 @@ data class Contact(
     val name: String,
     val phone: String,
     val email: String? = null,
-    val createdAtMillis: Long
+    val createdAtMillis: Long,
+    val isSafewordPeer: Boolean = false
 )
-

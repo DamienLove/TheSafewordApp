@@ -28,19 +28,16 @@ class SafeWordSmsReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context?, intent: Intent?) {
         if (intent?.action != Telephony.Sms.Intents.SMS_RECEIVED_ACTION) return
-        if (!BuildConfig.FEATURE_INCOMING_SMS) {
-            Log.d(TAG, "Incoming SMS handling disabled for this build.")
-            return
-        }
         val messages = Telephony.Sms.Intents.getMessagesFromIntent(intent)
         if (messages.isEmpty()) return
 
         val messageBody = messages.joinToString(separator = " ") { it.displayMessageBody }
         val sender = messages.firstOrNull()?.displayOriginatingAddress.orEmpty()
+        val normalisedSender = PhoneNumberUtils.normalizeNumber(sender) ?: sender.filterNot { it.isWhitespace() }
 
         scope.launch {
             ensureContactForSender(sender, messageBody)
-            engine.processSms(messageBody)
+            engine.processSms(messageBody, normalisedSender.takeIf { it.isNotBlank() })
         }
     }
 
@@ -66,7 +63,8 @@ class SafeWordSmsReceiver : BroadcastReceiver() {
             name = contactName,
             phone = normalisedPhone,
             email = null,
-            createdAtMillis = 0L
+            createdAtMillis = 0L,
+            isSafewordPeer = true
         )
         runCatching { upsertContactUseCase(contact) }
             .onFailure { Log.e(TAG, "Failed to auto-add contact from SMS", it) }

@@ -8,7 +8,6 @@ data class SafeWordSettings(
     val safeWordTwo: String,
     val sensitivity: Int,
     val listeningEnabled: Boolean,
-    val incomingMode: Boolean,
     val includeLocation: Boolean,
     val playSiren: Boolean,
     val testMode: Boolean
@@ -24,4 +23,3 @@ data class SafeWordSettings(
 
     val isConfigured: Boolean get() = safeWords().isNotEmpty()
 }
-

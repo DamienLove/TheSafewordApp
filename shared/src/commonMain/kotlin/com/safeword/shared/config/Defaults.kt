@@ -8,10 +8,8 @@ object Defaults {
         safeWordTwo = "",
         sensitivity = 50,
         listeningEnabled = false,
-        incomingMode = true,
         includeLocation = true,
         playSiren = false,
         testMode = false
     )
 }
-

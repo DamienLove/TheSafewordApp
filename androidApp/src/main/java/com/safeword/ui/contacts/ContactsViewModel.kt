@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.safeword.shared.domain.SafeWordEngine
 import com.safeword.shared.domain.model.Contact
+import com.safeword.shared.domain.model.ContactEngagementType
 import com.safeword.shared.domain.repository.ContactRepository
 import com.safeword.shared.domain.usecase.DeleteContactUseCase
 import com.safeword.shared.domain.usecase.UpsertContactUseCase
@@ -37,6 +38,18 @@ class ContactsViewModel @Inject constructor(
         viewModelScope.launch {
             val success = engine.sendCheckIn(contact)
             onResult(success)
+        }
+    }
+
+    fun sendContactSignal(
+        contact: Contact,
+        type: ContactEngagementType,
+        emergency: Boolean,
+        onResult: (Boolean) -> Unit
+    ) {
+        viewModelScope.launch {
+            val sent = engine.sendContactSignal(contact, type, emergency)
+            onResult(sent)
         }
     }
 }

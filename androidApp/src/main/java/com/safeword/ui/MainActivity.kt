@@ -3,50 +3,55 @@ package com.safeword.ui
 import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.res.ColorStateList
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
+import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.compose.setContent
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
-import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import com.google.android.gms.ads.AdLoader
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.VideoOptions
 import com.google.android.gms.ads.nativead.NativeAd
 import com.google.android.gms.ads.nativead.NativeAdOptions
 import com.google.android.gms.ads.nativead.NativeAdView
-import com.google.android.gms.ads.VideoOptions
-import com.google.android.material.snackbar.Snackbar
 import com.safeword.BuildConfig
 import com.safeword.R
-import com.safeword.databinding.ActivityMainBinding
 import com.safeword.databinding.ViewNativeAdBinding
 import com.safeword.service.EmergencyHandlerService
 import com.safeword.service.SafeWordPeerService
 import com.safeword.service.VoiceRecognitionService
 import com.safeword.shared.domain.model.AlertSource
-import com.safeword.ui.SafeWordWizardActivity
-import com.safeword.ui.main.MainUiState
+import com.safeword.ui.main.MainDestination
+import com.safeword.ui.main.MainScreen
 import com.safeword.ui.main.MainViewModel
 import com.safeword.ui.onboarding.OnboardingActivity
+import com.safeword.ui.theme.SafeWordTheme
 import com.safeword.util.OnboardingPreferences
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity() {
+class MainActivity : ComponentActivity() {
 
     private val viewModel: MainViewModel by viewModels()
-    private lateinit var binding: ActivityMainBinding
-    private var updatingModeSelection = false
-    private var currentNativeAd: NativeAd? = null
-    private var isListening = false
+
+    private val snackbarHostState = SnackbarHostState()
+    private var currentNativeAd by mutableStateOf<NativeAd?>(null)
+    private var isAdVisible by mutableStateOf(false)
+    private var lastListeningState: Boolean? = null
 
     private val permissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -56,50 +61,50 @@ class MainActivity : AppCompatActivity() {
             viewModel.setListening(true)
         } else {
             viewModel.setListening(false)
-            Snackbar.make(binding.root, R.string.enable_permissions, Snackbar.LENGTH_LONG).show()
+            lifecycleScope.launch {
+                snackbarHostState.showSnackbar(getString(R.string.enable_permissions))
+            }
         }
     }
 
+    private val requiredPermissions = arrayOf(
+        Manifest.permission.RECORD_AUDIO,
+        Manifest.permission.POST_NOTIFICATIONS
+    )
+
+    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         if (!OnboardingPreferences.isCompleted(this)) {
             startActivity(Intent(this, OnboardingActivity::class.java))
             finish()
             return
         }
-        binding = ActivityMainBinding.inflate(layoutInflater)
-        setContentView(binding.root)
 
-        configureFeatureAccess()
-        loadNativeAdIfNeeded()
+        val activity = this
+        setContent {
+            SafeWordTheme {
+                val windowSizeClass = calculateWindowSizeClass(activity)
+                val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+                MainScreen(
+                    windowSizeClass = windowSizeClass,
+                    state = uiState,
+                    snackbarHostState = snackbarHostState,
+                    nativeAd = currentNativeAd,
+                    adVisible = isAdVisible && BuildConfig.FEATURE_ADS_ENABLED,
+                    adsEnabled = BuildConfig.FEATURE_ADS_ENABLED,
+                    onCloseAd = { clearNativeAd() },
+                    onToggleListening = { toggleListeningState(uiState.listeningEnabled) },
+                    onNavigate = { destination -> handleNavigation(destination) },
+                    onBindNativeAdView = { ad, binding -> populateNativeAdView(ad, binding) }
+                )
+            }
+        }
 
         SafeWordPeerService.start(this)
-
-        binding.cardListening.setOnClickListener {
-            toggleListeningState()
-        }
-
-        binding.modeToggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
-            if (!isChecked || updatingModeSelection) return@addOnButtonCheckedListener
-            val incoming = checkedId == binding.buttonModeIncoming.id
-            viewModel.setModeIncoming(incoming)
-            updateModeButtons(incoming)
-        }
-
-        binding.cardSettings.setOnClickListener {
-            startActivity(Intent(this, SettingsActivity::class.java))
-        }
-
-        binding.cardContacts.setOnClickListener {
-            startActivity(Intent(this, ContactsActivity::class.java))
-        }
-
-        binding.cardSafeWords.setOnClickListener {
-            startActivity(Intent(this, SafeWordWizardActivity::class.java))
-        }
-
-        updateModeButtons(binding.modeToggleGroup.checkedButtonId == binding.buttonModeIncoming.id)
-        observeState()
+        loadNativeAdIfNeeded()
+        observeListeningState()
         handleShortcutIntent(intent)
     }
 
@@ -110,25 +115,47 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        currentNativeAd?.destroy()
-        currentNativeAd = null
+        clearNativeAd()
         super.onDestroy()
     }
 
-    private fun configureFeatureAccess() {
-        if (!BuildConfig.FEATURE_INCOMING_SMS) {
-            binding.buttonModeIncoming.isEnabled = false
-            binding.buttonModeIncoming.text = getString(R.string.mode_incoming_locked)
-            binding.buttonModeIncoming.alpha = 0.5f
+    private fun handleNavigation(destination: MainDestination): Boolean {
+        return when (destination) {
+            MainDestination.Dashboard -> true
+            MainDestination.Contacts -> {
+                startActivity(Intent(this, ContactsActivity::class.java))
+                false
+            }
+            MainDestination.SafeWords -> {
+                startActivity(Intent(this, SafeWordWizardActivity::class.java))
+                false
+            }
+            MainDestination.Settings -> {
+                startActivity(Intent(this, SettingsActivity::class.java))
+                false
+            }
+        }
+    }
+
+    private fun toggleListeningState(isCurrentlyListening: Boolean) {
+        if (isCurrentlyListening) {
+            viewModel.setListening(false)
+            return
+        }
+
+        val hasPermissions = requiredPermissions.all { perm ->
+            ContextCompat.checkSelfPermission(this, perm) == PackageManager.PERMISSION_GRANTED
+        }
+        if (hasPermissions) {
+            viewModel.setListening(true)
         } else {
-            binding.buttonModeIncoming.isEnabled = true
-            binding.buttonModeIncoming.alpha = 1f
+            permissionLauncher.launch(requiredPermissions)
         }
     }
 
     private fun loadNativeAdIfNeeded() {
         if (!BuildConfig.FEATURE_ADS_ENABLED) {
-            binding.nativeAdContainer.visibility = View.GONE
+            clearNativeAd()
             return
         }
 
@@ -136,15 +163,11 @@ class MainActivity : AppCompatActivity() {
             .forNativeAd { nativeAd ->
                 currentNativeAd?.destroy()
                 currentNativeAd = nativeAd
-                val adBinding = ViewNativeAdBinding.inflate(LayoutInflater.from(this))
-                populateNativeAdView(nativeAd, adBinding)
-                binding.nativeAdContainer.removeAllViews()
-                binding.nativeAdContainer.addView(adBinding.root)
-                binding.nativeAdContainer.visibility = View.VISIBLE
+                isAdVisible = true
             }
             .withAdListener(object : com.google.android.gms.ads.AdListener() {
                 override fun onAdFailedToLoad(error: LoadAdError) {
-                    binding.nativeAdContainer.visibility = View.GONE
+                    clearNativeAd()
                 }
             })
             .withNativeAdOptions(
@@ -161,158 +184,84 @@ class MainActivity : AppCompatActivity() {
         adLoader.loadAd(AdRequest.Builder().build())
     }
 
-    private fun populateNativeAdView(nativeAd: NativeAd, adBinding: ViewNativeAdBinding) {
-        val adView = adBinding.root
-        adView.headlineView = adBinding.adHeadline
-        adView.bodyView = adBinding.adBody
-        adView.iconView = adBinding.adIcon
-        adView.callToActionView = adBinding.adCallToAction
-        adView.mediaView = adBinding.adMedia
-        adView.advertiserView = adBinding.adAdvertiser
-
-        adBinding.adHeadline.text = nativeAd.headline
-
-        val body = nativeAd.body
-        if (body.isNullOrBlank()) {
-            adBinding.adBody.visibility = View.GONE
-        } else {
-            adBinding.adBody.visibility = View.VISIBLE
-            adBinding.adBody.text = body
-        }
-
-        val advertiser = nativeAd.advertiser
-        if (advertiser.isNullOrBlank()) {
-            adBinding.adAdvertiser.visibility = View.GONE
-        } else {
-            adBinding.adAdvertiser.visibility = View.VISIBLE
-            adBinding.adAdvertiser.text = advertiser
-        }
-
-        val icon = nativeAd.icon
-        if (icon != null) {
-            adBinding.adIcon.visibility = View.VISIBLE
-            adBinding.adIcon.setImageDrawable(icon.drawable)
-        } else {
-            adBinding.adIcon.visibility = View.GONE
-        }
-
-        val ctaText = nativeAd.callToAction ?: getString(R.string.learn_more)
-        adBinding.adCallToAction.text = ctaText
-        adBinding.adCallToAction.visibility =
-            if (nativeAd.callToAction.isNullOrBlank()) View.GONE else View.VISIBLE
-
-        adBinding.adMedia.setMediaContent(nativeAd.mediaContent)
-
-        adView.setNativeAd(nativeAd)
-    }
-
-    private fun observeState() {
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.uiState.collect { renderState(it) }
-            }
-        }
-    }
-
-    private fun renderState(state: MainUiState) {
-        val changed = isListening != state.listeningEnabled
-        isListening = state.listeningEnabled
-        updateListeningUi(isListening)
-        if (changed) {
-            if (isListening) {
-                VoiceRecognitionService.start(this)
-            } else {
-                VoiceRecognitionService.stop(this)
-            }
-        }
-        updatingModeSelection = true
-        if (BuildConfig.FEATURE_INCOMING_SMS && state.incomingMode) {
-            binding.modeToggleGroup.check(binding.buttonModeIncoming.id)
-        } else {
-            if (!BuildConfig.FEATURE_INCOMING_SMS && state.incomingMode) {
-                viewModel.setModeIncoming(false)
-            }
-            binding.modeToggleGroup.check(binding.buttonModeOutgoing.id)
-        }
-        updatingModeSelection = false
-        updateModeButtons(state.incomingMode && BuildConfig.FEATURE_INCOMING_SMS)
-        binding.textContacts.text = resources.getQuantityString(R.plurals.contacts_count, state.contacts, state.contacts)
-        binding.textPeerState.text = when (state.peerState) {
-            is com.safeword.shared.bridge.model.PeerBridgeState.Connected -> getString(R.string.peer_connected)
-            is com.safeword.shared.bridge.model.PeerBridgeState.Error -> state.peerState.message
-            else -> getString(R.string.peer_disconnected)
-        }
-    }
-
-    private fun updateModeButtons(incomingSelected: Boolean) {
-        val selectedBackground = ContextCompat.getColor(this, R.color.mode_selected_bg)
-        val unselectedBackground = ContextCompat.getColor(this, R.color.mode_unselected_bg)
-        val selectedText = ContextCompat.getColor(this, R.color.mode_selected_text)
-        val unselectedText = ContextCompat.getColor(this, R.color.mode_unselected_text)
-
-        val incomingColor = if (incomingSelected) selectedBackground else unselectedBackground
-        val outgoingColor = if (incomingSelected) unselectedBackground else selectedBackground
-        val incomingTextColor = if (incomingSelected) selectedText else unselectedText
-        val outgoingTextColor = if (incomingSelected) unselectedText else selectedText
-
-        binding.buttonModeIncoming.backgroundTintList = ColorStateList.valueOf(incomingColor)
-        binding.buttonModeOutgoing.backgroundTintList = ColorStateList.valueOf(outgoingColor)
-        binding.buttonModeIncoming.setTextColor(incomingTextColor)
-        binding.buttonModeOutgoing.setTextColor(outgoingTextColor)
-    }
-
-    private fun toggleListeningState() {
-        if (isListening) {
-            viewModel.setListening(false)
-            return
-        }
-
-        val permissions = arrayOf(
-            Manifest.permission.RECORD_AUDIO,
-            Manifest.permission.POST_NOTIFICATIONS
-        )
-        val hasPermissions = permissions.all { perm ->
-            ContextCompat.checkSelfPermission(this, perm) == PackageManager.PERMISSION_GRANTED
-        }
-        if (hasPermissions) {
-            viewModel.setListening(true)
-        } else {
-            permissionLauncher.launch(permissions)
-        }
-    }
-
-    private fun updateListeningUi(listening: Boolean) {
-        binding.imageListeningGlow.isVisible = listening
-        binding.cardListening.setBackgroundResource(
-            if (listening) R.drawable.bg_listening_button_on else R.drawable.bg_listening_button_off
-        )
-        binding.imageListeningIcon.setColorFilter(
-            ContextCompat.getColor(
-                this,
-                if (listening) R.color.safeword_on_primary else R.color.accent_teal
-            )
-        )
-        binding.textListeningStatus.text = if (listening) {
-            getString(R.string.main_listening_active)
-        } else {
-            getString(R.string.main_listening_inactive)
-        }
-        binding.textStatusChip.text = if (listening) {
-            getString(R.string.main_status_listening_chip_on)
-        } else {
-            getString(R.string.main_status_listening_chip_off)
-        }
+    private fun clearNativeAd() {
+        currentNativeAd?.destroy()
+        currentNativeAd = null
+        isAdVisible = false
     }
 
     private fun handleShortcutIntent(intent: Intent?) {
         when (intent?.action) {
-            ACTION_START_LISTENING -> {
+            MainActivity.ACTION_START_LISTENING -> {
+                val isListening = viewModel.uiState.value.listeningEnabled
                 if (!isListening) {
-                    toggleListeningState()
+                    toggleListeningState(isListening)
                 }
             }
-            ACTION_RUN_TEST -> {
+            MainActivity.ACTION_RUN_TEST -> {
                 EmergencyHandlerService.trigger(this, "TEST", AlertSource.TEST)
+            }
+        }
+    }
+
+    private fun populateNativeAdView(nativeAd: NativeAd, binding: ViewNativeAdBinding) {
+        val adView = binding.root as NativeAdView
+        adView.headlineView = binding.adHeadline
+        adView.bodyView = binding.adBody
+        adView.iconView = binding.adIcon
+        adView.callToActionView = binding.adCallToAction
+        adView.mediaView = binding.adMedia
+        adView.advertiserView = binding.adAdvertiser
+
+        binding.adHeadline.text = nativeAd.headline
+
+        val body = nativeAd.body
+        if (body.isNullOrBlank()) {
+            binding.adBody.visibility = android.view.View.GONE
+        } else {
+            binding.adBody.visibility = android.view.View.VISIBLE
+            binding.adBody.text = body
+        }
+
+        val advertiser = nativeAd.advertiser
+        if (advertiser.isNullOrBlank()) {
+            binding.adAdvertiser.visibility = android.view.View.GONE
+        } else {
+            binding.adAdvertiser.visibility = android.view.View.VISIBLE
+            binding.adAdvertiser.text = advertiser
+        }
+
+        val icon = nativeAd.icon
+        if (icon != null) {
+            binding.adIcon.visibility = android.view.View.VISIBLE
+            binding.adIcon.setImageDrawable(icon.drawable)
+        } else {
+            binding.adIcon.visibility = android.view.View.GONE
+        }
+
+        val ctaText = nativeAd.callToAction ?: getString(R.string.learn_more)
+        binding.adCallToAction.text = ctaText
+        binding.adCallToAction.visibility =
+            if (nativeAd.callToAction.isNullOrBlank()) android.view.View.GONE else android.view.View.VISIBLE
+
+        binding.adMedia.setMediaContent(nativeAd.mediaContent)
+
+        adView.setNativeAd(nativeAd)
+    }
+
+    private fun observeListeningState() {
+        lifecycleScope.launch {
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collectLatest { state ->
+                    val listening = state.listeningEnabled
+                    if (lastListeningState == listening) return@collectLatest
+                    lastListeningState = listening
+                    if (listening) {
+                        VoiceRecognitionService.start(this@MainActivity)
+                    } else {
+                        VoiceRecognitionService.stop(this@MainActivity)
+                    }
+                }
             }
         }
     }

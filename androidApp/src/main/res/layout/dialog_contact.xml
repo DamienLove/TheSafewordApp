@@ -72,6 +72,14 @@
             android:textColor="@color/safeword_on_surface" />
     </com.google.android.material.textfield.TextInputLayout>
 
+    <com.google.android.material.materialswitch.MaterialSwitch
+        android:id="@+id/switch_safeword_peer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="@string/contact_mark_safeword_peer"
+        android:textColor="@color/safeword_on_surface" />
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/button_import"
         style="@style/Widget.Material3.Button.TextButton"
