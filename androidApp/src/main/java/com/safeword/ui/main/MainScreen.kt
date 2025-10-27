@@ -27,6 +27,7 @@ import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Key
 import androidx.compose.material.icons.outlined.People
 import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
@@ -90,6 +91,8 @@ fun MainScreen(
     onCloseAd: () -> Unit,
     onToggleListening: () -> Unit,
     onNavigate: (MainDestination) -> Boolean,
+    onUpgradeToPro: () -> Unit,
+    onGiftPro: () -> Unit,
     onBindNativeAdView: (NativeAd, ViewNativeAdBinding) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -129,6 +132,9 @@ fun MainScreen(
                         .padding(padding),
                     onToggleListening = onToggleListening,
                     onNavigate = handleSelection,
+                    adsEnabled = adsEnabled,
+                    onUpgradeToPro = onUpgradeToPro,
+                    onGiftPro = onGiftPro,
                     nativeAd = if (adsEnabled && adVisible) nativeAd else null,
                     onCloseAd = onCloseAd,
                     onBindNativeAdView = onBindNativeAdView
@@ -151,6 +157,9 @@ fun MainScreen(
                         .padding(padding),
                     onToggleListening = onToggleListening,
                     onNavigate = handleSelection,
+                    adsEnabled = adsEnabled,
+                    onUpgradeToPro = onUpgradeToPro,
+                    onGiftPro = onGiftPro,
                     nativeAd = if (adsEnabled && adVisible) nativeAd else null,
                     onCloseAd = onCloseAd,
                     onBindNativeAdView = onBindNativeAdView
@@ -173,6 +182,9 @@ fun MainScreen(
                         .padding(padding),
                     onToggleListening = onToggleListening,
                     onNavigate = handleSelection,
+                    adsEnabled = adsEnabled,
+                    onUpgradeToPro = onUpgradeToPro,
+                    onGiftPro = onGiftPro,
                     nativeAd = if (adsEnabled && adVisible) nativeAd else null,
                     onCloseAd = onCloseAd,
                     onBindNativeAdView = onBindNativeAdView
@@ -312,6 +324,9 @@ private fun DashboardContent(
     modifier: Modifier = Modifier,
     onToggleListening: () -> Unit,
     onNavigate: (MainDestination) -> Unit,
+    adsEnabled: Boolean,
+    onUpgradeToPro: () -> Unit,
+    onGiftPro: () -> Unit,
     nativeAd: NativeAd?,
     onCloseAd: () -> Unit,
     onBindNativeAdView: (NativeAd, ViewNativeAdBinding) -> Unit
@@ -338,6 +353,11 @@ private fun DashboardContent(
             StatusChip(listening = state.listeningEnabled)
             ListeningControl(state.listeningEnabled, onToggleListening)
             QuickActionsRow(onNavigate = onNavigate)
+            if (adsEnabled) {
+                UpgradeCalloutCard(onUpgradeToPro)
+            } else if (state.linkedFreeContacts > 0) {
+                GiftCalloutCard(state.linkedFreeContacts, onGiftPro)
+            }
             StatusCard(state)
             if (nativeAd != null) {
                 NativeAdCard(
@@ -528,6 +548,75 @@ private fun QuickActionCard(
                     color = colorResource(id = R.color.safeword_on_surface_variant),
                     style = MaterialTheme.typography.bodySmall
                 )
+            }
+        }
+    }
+}
+
+@Composable
+private fun UpgradeCalloutCard(onUpgrade: () -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = colorResource(id = R.color.card_background_variant),
+        tonalElevation = 0.dp
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = stringResource(id = R.string.upgrade_card_title),
+                style = MaterialTheme.typography.titleLarge,
+                color = colorResource(id = R.color.safeword_on_surface)
+            )
+            Text(
+                text = stringResource(id = R.string.upgrade_card_subtitle),
+                style = MaterialTheme.typography.bodyMedium,
+                color = colorResource(id = R.color.safeword_on_surface_variant)
+            )
+            Button(onClick = onUpgrade) {
+                Text(text = stringResource(id = R.string.upgrade_card_cta))
+            }
+        }
+    }
+}
+
+@Composable
+private fun GiftCalloutCard(
+    linkedFreeContacts: Int,
+    onGift: () -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        color = colorResource(id = R.color.card_background),
+        tonalElevation = 0.dp
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = stringResource(id = R.string.gift_card_title),
+                style = MaterialTheme.typography.titleLarge,
+                color = colorResource(id = R.color.safeword_on_surface)
+            )
+            Text(
+                text = pluralStringResource(
+                    id = R.plurals.gift_card_subtitle,
+                    count = linkedFreeContacts,
+                    linkedFreeContacts
+                ),
+                style = MaterialTheme.typography.bodyMedium,
+                color = colorResource(id = R.color.safeword_on_surface_variant)
+            )
+            Button(onClick = onGift) {
+                Text(text = stringResource(id = R.string.gift_card_cta))
             }
         }
     }

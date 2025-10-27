@@ -2,6 +2,7 @@ package com.safeword.shared
 
 import com.safeword.shared.bridge.PeerBridge
 import com.safeword.shared.domain.SafeWordEngine
+import com.safeword.shared.domain.model.PlanTier
 import com.safeword.shared.domain.repository.AlertEventRepository
 import com.safeword.shared.domain.repository.ContactRepository
 import com.safeword.shared.domain.repository.SettingsGateway
@@ -17,7 +18,8 @@ object SafeWordBootstrap {
         emergencyDispatcher: EmergencyDispatcher,
         peerBridge: PeerBridge,
         timeProvider: TimeProvider,
-        scope: CoroutineScope
+        scope: CoroutineScope,
+        planTier: PlanTier
     ): SafeWordEngine {
         return SafeWordEngine(
             settingsGateway = settingsGateway,
@@ -26,7 +28,8 @@ object SafeWordBootstrap {
             dispatcher = emergencyDispatcher,
             peerBridge = peerBridge,
             timeProvider = timeProvider,
-            scope = scope
+            scope = scope,
+            localPlanTier = planTier
         )
     }
 }

@@ -3,6 +3,7 @@ package com.safeword.data
 import com.safeword.data.db.ContactDao
 import com.safeword.data.db.ContactEntity
 import com.safeword.shared.domain.model.Contact
+import com.safeword.shared.domain.model.PlanTier
 import com.safeword.shared.domain.repository.ContactRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -41,7 +42,8 @@ class ContactRepositoryImpl(
         phone = phone,
         email = email,
         createdAtMillis = createdAt,
-        isSafewordPeer = safewordPeer
+        isSafewordPeer = safewordPeer,
+        planTier = planTier?.let { runCatching { PlanTier.valueOf(it) }.getOrNull() }
     )
 
     private fun Contact.toEntity(): ContactEntity = ContactEntity(
@@ -50,6 +52,8 @@ class ContactRepositoryImpl(
         phone = phone,
         email = email,
         createdAt = createdAtMillis,
-        safewordPeer = isSafewordPeer
+        safewordPeer = isSafewordPeer,
+        planTier = planTier?.name
     )
 }
+

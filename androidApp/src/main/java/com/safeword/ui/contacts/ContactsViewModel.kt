@@ -52,4 +52,11 @@ class ContactsViewModel @Inject constructor(
             onResult(sent)
         }
     }
+
+    fun sendInvite(contact: Contact, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val sent = engine.sendInvite(contact)
+            onResult(sent)
+        }
+    }
 }

@@ -7,6 +7,7 @@ import com.safeword.shared.domain.model.AlertEvent
 import com.safeword.shared.domain.model.AlertSource
 import com.safeword.shared.domain.model.Contact
 import com.safeword.shared.domain.model.ContactEngagementType
+import com.safeword.shared.domain.model.PlanTier
 import com.safeword.shared.domain.model.SafeWordSettings
 import com.safeword.shared.domain.repository.AlertEventRepository
 import com.safeword.shared.domain.repository.ContactRepository
@@ -30,7 +31,8 @@ class SafeWordEngine(
     private val dispatcher: EmergencyDispatcher,
     private val peerBridge: PeerBridge,
     private val timeProvider: TimeProvider,
-    private val scope: CoroutineScope
+    private val scope: CoroutineScope,
+    private val localPlanTier: PlanTier
 ) {
 
     private val engineScope = CoroutineScope(scope.coroutineContext + Job())
@@ -131,15 +133,17 @@ class SafeWordEngine(
         type: ContactEngagementType,
         emergency: Boolean
     ): Boolean {
-        if (!contact.isSafewordPeer) return false
+        if (type != ContactEngagementType.INVITE && !contact.isSafewordPeer) return false
         val settings = dashboardState.value.settings ?: return false
         val timestamp = timeProvider.nowMillis()
-        val location = if (settings.includeLocation) dispatcher.resolveLocation() else null
+        val includeLocation = settings.includeLocation && type != ContactEngagementType.INVITE
+        val location = if (includeLocation) dispatcher.resolveLocation() else null
         val parts = mutableListOf(
             CONTACT_SIGNAL_HEADER,
             "$KEY_TYPE=${type.name}",
             "$KEY_EMERGENCY=${if (emergency) 1 else 0}",
-            "$KEY_TIMESTAMP=$timestamp"
+            "$KEY_TIMESTAMP=$timestamp",
+            "$KEY_PLAN=${localPlanTier.name}"
         )
         location?.let { (lat, lon) ->
             parts += "$KEY_LAT=$lat"
@@ -147,8 +151,17 @@ class SafeWordEngine(
         }
         val payload = parts.joinToString(separator = "|")
         val locationLink = location?.let { " https://maps.google.com/?q=${it.first},${it.second}" } ?: ""
-        val tone = if (emergency) "Emergency" else "Check-in"
-        val friendly = "$tone ${type.name.lowercase()} request via SafeWord.$locationLink"
+        val friendly = when (type) {
+            ContactEngagementType.CALL -> {
+                val tone = if (emergency) "Emergency" else "Check-in"
+                "$tone call request via SafeWord.$locationLink"
+            }
+            ContactEngagementType.TEXT -> {
+                val tone = if (emergency) "Emergency" else "Check-in"
+                "$tone message request via SafeWord.$locationLink"
+            }
+            ContactEngagementType.INVITE -> buildInviteMessage()
+        }
         val body = buildString {
             append(CONTACT_SIGNAL_PREFIX)
             append(' ')
@@ -158,6 +171,29 @@ class SafeWordEngine(
         }
         val sent = dispatcher.sendSms(body, listOf(contact)) > 0
         return sent
+    }
+
+    suspend fun sendInvite(contact: Contact): Boolean {
+        val sent = sendContactSignal(contact, ContactEngagementType.INVITE, emergency = false)
+        if (sent) {
+            val updated = contact.copy(isSafewordPeer = true)
+            contactRepository.upsert(updated)
+        }
+        return sent
+    }
+
+    private fun buildInviteMessage(): String {
+        val tierLabel = if (localPlanTier == PlanTier.PRO) "SafeWord Pro" else "SafeWord"
+        return "I'm using $tierLabel to stay protected. Download the app and we'll link automatically: $DOWNLOAD_URL"
+    }
+
+    private fun buildInviteReceivedMessage(contactName: String, planTier: PlanTier?): String {
+        val tierLabel = when (planTier) {
+            PlanTier.PRO -> "SafeWord Pro"
+            PlanTier.FREE -> "SafeWord"
+            null -> "SafeWord"
+        }
+        return "$contactName invited you to connect on $tierLabel.\nOpen SafeWord to finish linking."
     }
 
     private suspend fun triggerEmergency(
@@ -256,28 +292,38 @@ class SafeWordEngine(
         val emergency = data[KEY_EMERGENCY]?.toIntOrNull() == 1
         val lat = data[KEY_LAT]?.toDoubleOrNull()
         val lon = data[KEY_LON]?.toDoubleOrNull()
+        val planTier = data[KEY_PLAN]?.let { runCatching { PlanTier.valueOf(it) }.getOrNull() }
 
         val existing = contactRepository.findByPhone(phone)
-        val resolved = when {
-            existing == null -> contactRepository.upsert(
-                Contact(
-                    id = null,
-                    name = phone,
-                    phone = phone,
-                    email = null,
-                    createdAtMillis = timeProvider.nowMillis(),
-                    isSafewordPeer = true
-                )
+        val candidate = if (existing == null) {
+            Contact(
+                id = null,
+                name = phone,
+                phone = phone,
+                email = null,
+                createdAtMillis = timeProvider.nowMillis(),
+                isSafewordPeer = true,
+                planTier = planTier
             )
-            existing.isSafewordPeer -> existing
-            else -> contactRepository.upsert(existing.copy(isSafewordPeer = true))
+        } else {
+            existing.copy(
+                isSafewordPeer = true,
+                planTier = planTier ?: existing.planTier
+            )
         }
+        val resolved = contactRepository.upsert(candidate)
 
         dispatcher.raiseRinger()
         dispatcher.playGentleTone()
-        val descriptor = if (emergency) "Emergency ${type.name.lowercase()}" else "Check-in ${type.name.lowercase()}"
-        val locationText = if (lat != null && lon != null) "\nhttps://maps.google.com/?q=$lat,$lon" else ""
-        dispatcher.showCheckInPrompt(resolved.name, "$descriptor from ${resolved.name}.$locationText")
+        val prompt = when (type) {
+            ContactEngagementType.INVITE -> buildInviteReceivedMessage(resolved.name, planTier)
+            else -> {
+                val descriptor = if (emergency) "Emergency ${type.name.lowercase()}" else "Check-in ${type.name.lowercase()}"
+                val locationText = if (lat != null && lon != null) "\nhttps://maps.google.com/?q=$lat,$lon" else ""
+                "$descriptor from ${resolved.name}.$locationText"
+            }
+        }
+        dispatcher.showCheckInPrompt(resolved.name, prompt)
     }
 
     companion object {
@@ -288,6 +334,8 @@ class SafeWordEngine(
         private const val KEY_TIMESTAMP = "TS"
         private const val KEY_LAT = "LAT"
         private const val KEY_LON = "LON"
+        private const val KEY_PLAN = "PLAN"
+        private const val DOWNLOAD_URL = "https://safeword.app/download"
     }
 }
 

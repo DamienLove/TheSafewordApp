@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.net.Uri
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -97,6 +98,8 @@ class MainActivity : ComponentActivity() {
                     onCloseAd = { clearNativeAd() },
                     onToggleListening = { toggleListeningState(uiState.listeningEnabled) },
                     onNavigate = { destination -> handleNavigation(destination) },
+                    onUpgradeToPro = { launchUpgradeFlow() },
+                    onGiftPro = { launchGiftFlow() },
                     onBindNativeAdView = { ad, binding -> populateNativeAdView(ad, binding) }
                 )
             }
@@ -117,6 +120,23 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         clearNativeAd()
         super.onDestroy()
+    }
+
+    private fun launchUpgradeFlow() {
+        val uri = Uri.parse(getString(R.string.safeword_pro_play_link))
+        val playIntent = Intent(Intent.ACTION_VIEW, uri).apply {
+            setPackage("com.android.vending")
+        }
+        val fallbackIntent = Intent(Intent.ACTION_VIEW, uri)
+        runCatching { startActivity(playIntent) }
+            .onFailure { startActivity(fallbackIntent) }
+    }
+
+    private fun launchGiftFlow() {
+        startActivity(Intent(this, ContactsActivity::class.java))
+        lifecycleScope.launch {
+            snackbarHostState.showSnackbar(getString(R.string.gift_flow_hint))
+        }
     }
 
     private fun handleNavigation(destination: MainDestination): Boolean {

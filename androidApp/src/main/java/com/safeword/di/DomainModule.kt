@@ -1,11 +1,13 @@
 package com.safeword.di
 
 import android.content.Context
+import com.safeword.BuildConfig
 import com.safeword.service.AndroidEmergencyDispatcher
 import com.safeword.service.AndroidPeerBridge
 import com.safeword.shared.SafeWordBootstrap
 import com.safeword.shared.bridge.PeerBridge
 import com.safeword.shared.domain.SafeWordEngine
+import com.safeword.shared.domain.model.PlanTier
 import com.safeword.shared.domain.repository.AlertEventRepository
 import com.safeword.shared.domain.repository.ContactRepository
 import com.safeword.shared.domain.repository.SettingsGateway
@@ -110,7 +112,8 @@ object DomainModule {
         emergencyDispatcher = dispatcher,
         peerBridge = peerBridge,
         timeProvider = timeProvider,
-        scope = scope
+        scope = scope,
+        planTier = if (BuildConfig.FEATURE_ADS_ENABLED) PlanTier.FREE else PlanTier.PRO
     )
 
     @Provides

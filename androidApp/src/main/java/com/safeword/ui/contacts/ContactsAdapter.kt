@@ -9,13 +9,17 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.safeword.databinding.ItemContactBinding
 import com.safeword.shared.domain.model.Contact
+import com.safeword.shared.domain.model.PlanTier
 
 class ContactsAdapter(
     private val onEdit: (Contact) -> Unit,
     private val onDelete: (Contact) -> Unit,
     private val onCall: (Contact) -> Unit,
     private val onMessage: (Contact) -> Unit,
-    private val onPing: (Contact) -> Unit
+    private val onPing: (Contact) -> Unit,
+    private val onInvite: (Contact) -> Unit,
+    private val onGift: (Contact) -> Unit,
+    private val canGift: Boolean
 ) : ListAdapter<Contact, ContactsAdapter.ViewHolder>(DiffCallback) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -46,6 +50,14 @@ class ContactsAdapter(
             binding.buttonCall.setOnClickListener { onCall(contact) }
             binding.buttonMessage.setOnClickListener { onMessage(contact) }
             binding.buttonPing.setOnClickListener { onPing(contact) }
+
+            val showInvite = !contact.isSafewordPeer
+            val showGift = canGift && contact.isSafewordPeer && contact.planTier == PlanTier.FREE
+            binding.buttonInvite.isVisible = showInvite
+            binding.buttonGift.isVisible = showGift
+            binding.layoutSecondaryActions.isVisible = showInvite || showGift
+            binding.buttonInvite.setOnClickListener { onInvite(contact) }
+            binding.buttonGift.setOnClickListener { onGift(contact) }
         }
     }
 

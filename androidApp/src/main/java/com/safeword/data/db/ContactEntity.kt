@@ -10,5 +10,6 @@ data class ContactEntity(
     val phone: String,
     val email: String?,
     val createdAt: Long,
-    val safewordPeer: Boolean
+    val safewordPeer: Boolean,
+    val planTier: String?
 )

@@ -76,7 +76,13 @@ Android Emulator
 ----------------
 - Launched AVD `Medium_Phone_API_36.1` and deployed the latest `freeDebug` build using `./gradlew androidApp:installFreeDebug`.
 - Started the app via `adb shell am start -n com.safeword.free.debug/com.safeword.ui.MainActivity`; the emulator remains running for manual inspection.
-- Alarm tests now display a “Silence alarm” action in the alert notification; tapping it stops playback instantly (via `AlarmSilenceReceiver`).
+- Alarm tests now display a "Silence alarm" action in the alert notification; tapping it stops playback instantly (via `AlarmSilenceReceiver`).
+
+Onboarding Walkthrough
+----------------------
+- The onboarding wizard now tracks microphone, notification, core (contacts/SMS/calls/location), battery, and Do Not Disturb access with live status chips.
+- Buttons request the missing runtime permissions first, then pivot to the relevant system settings once everything is granted.
+- The finish button unlocks after microphone and notification access are granted; skip still jumps straight into the app when needed.
 
 GitHub Packages & Releases
 --------------------------
@@ -94,6 +100,8 @@ Contact Pings & Gentle Alerts
 - Contact cards now expose one-tap **Call**, **Message**, and **Ping** actions for quicker outreach.
 - Pings broadcast a gentle alert to linked SafeWord peers (~60% volume) and display a check-in notification.
 - Custom audio hooks: place `androidApp/src/main/res/raw/safeword_alert.(ogg|mp3)` for the siren loop and optional `safeword_ping.(ogg|mp3)` for the ping tone.
+- Unlinked contacts expose an **Invite to SafeWord** button that sends a structured SMS; recipients running the app auto-link while everyone else sees the download URL.
+- SafeWord Pro users can gift the upgrade directly from the contacts list whenever a linked friend is still on the Free tier.
 
 Voice Shortcuts
 ---------------
@@ -107,6 +115,7 @@ Dashboard UI Refresh
 - Listening toggle moved to the card tap handler in `MainActivity.kt`; permission handling now gates microphone/notification access and the glow visibility updates via `isVisible`.
 - Safe Word wizard access is restored as a primary action tile alongside Contacts and Settings.
 - Native ad card is scroll-friendly, carries a dismiss control, and no longer blocks access to dashboard actions.
+- Free builds now surface an **Upgrade to SafeWord Pro** callout on the dashboard; Pro builds highlight a **Gift SafeWord Pro** prompt when linked friends remain on Free.
 
 Signing Secrets Required
 ------------------------

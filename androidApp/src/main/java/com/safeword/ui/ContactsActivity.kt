@@ -74,7 +74,10 @@ class ContactsActivity : AppCompatActivity() {
             onDelete = { contact -> deleteContact(contact) },
             onCall = { contact -> callContact(contact) },
             onMessage = { contact -> messageContact(contact) },
-            onPing = { contact -> pingContact(contact) }
+            onPing = { contact -> pingContact(contact) },
+            onInvite = { contact -> inviteContact(contact) },
+            onGift = { contact -> giftContact(contact) },
+            canGift = !BuildConfig.FEATURE_ADS_ENABLED
         )
         binding.listContacts.layoutManager = LinearLayoutManager(this)
         binding.listContacts.adapter = adapter
@@ -121,7 +124,8 @@ class ContactsActivity : AppCompatActivity() {
                     phone = phone,
                     email = email,
                     createdAtMillis = existing?.createdAtMillis ?: System.currentTimeMillis(),
-                    isSafewordPeer = safewordPeer
+                    isSafewordPeer = safewordPeer,
+                    planTier = existing?.planTier
                 )
                 viewModel.save(contact)
                 dialog.dismiss()
@@ -262,6 +266,35 @@ class ContactsActivity : AppCompatActivity() {
         }
     }
 
+    private fun inviteContact(contact: Contact) {
+        viewModel.sendInvite(contact) { sent ->
+            val message = if (sent) {
+                getString(R.string.contact_invite_sent, contact.name)
+            } else {
+                getString(R.string.contact_invite_failed, contact.name)
+            }
+            Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun giftContact(contact: Contact) {
+        if (contact.phone.isBlank()) {
+            Snackbar.make(binding.root, R.string.contact_gift_missing_phone, Snackbar.LENGTH_SHORT).show()
+            return
+        }
+        val message = getString(
+            R.string.contact_gift_message_body,
+            contact.name,
+            getString(R.string.safeword_pro_play_link)
+        )
+        val intent = Intent(Intent.ACTION_SENDTO).apply {
+            data = Uri.parse("smsto:${contact.phone}")
+            putExtra("sms_body", message)
+        }
+        launchContactIntent(intent)
+        Snackbar.make(binding.root, getString(R.string.contact_gift_prompt, contact.name), Snackbar.LENGTH_SHORT).show()
+    }
+
     private fun showContactActionDialog(
         contact: Contact,
         type: ContactEngagementType,
@@ -315,3 +348,4 @@ class ContactsActivity : AppCompatActivity() {
         }
     }
 }
+

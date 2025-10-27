@@ -113,6 +113,40 @@
                 app:iconPadding="8dp"
                 app:iconTint="@android:color/white" />
         </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layout_secondary_actions"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:visibility="gone"
+            android:weightSum="2">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_invite"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:text="@string/action_invite_contact"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"
+                app:iconTint="@color/safeword_on_surface" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_gift"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/action_gift_contact"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"
+                app:iconTint="@android:color/white" />
+        </LinearLayout>
     </LinearLayout>
 
 </com.google.android.material.card.MaterialCardView>

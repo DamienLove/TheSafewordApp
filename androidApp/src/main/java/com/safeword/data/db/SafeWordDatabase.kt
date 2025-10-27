@@ -5,7 +5,7 @@ import androidx.room.RoomDatabase
 
 @Database(
     entities = [ContactEntity::class, AlertEventEntity::class],
-    version = 2,
+    version = 3,
     exportSchema = true
 )
 abstract class SafeWordDatabase : RoomDatabase() {

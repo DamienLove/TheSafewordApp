@@ -9,5 +9,6 @@ data class Contact(
     val phone: String,
     val email: String? = null,
     val createdAtMillis: Long,
-    val isSafewordPeer: Boolean = false
+    val isSafewordPeer: Boolean = false,
+    val planTier: PlanTier? = null
 )

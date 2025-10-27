@@ -3,6 +3,7 @@ package com.safeword.shared.ios
 import com.safeword.shared.SafeWordBootstrap
 import com.safeword.shared.bridge.PeerBridge
 import com.safeword.shared.domain.SafeWordEngine
+import com.safeword.shared.domain.model.PlanTier
 import com.safeword.shared.domain.repository.AlertEventRepository
 import com.safeword.shared.domain.repository.ContactRepository
 import com.safeword.shared.domain.repository.SettingsGateway
@@ -21,7 +22,8 @@ class IosAppContainer @JvmOverloads constructor(
     peerBridge: PeerBridge? = null,
     private val emergencyDispatcher: EmergencyDispatcher = IosEmergencyDispatcher(),
     private val scope: CoroutineScope = MainScope(),
-    private val timeProvider: TimeProvider = DefaultTimeProvider()
+    private val timeProvider: TimeProvider = DefaultTimeProvider(),
+    private val planTier: PlanTier = PlanTier.PRO
 ) {
 
     val coroutineScope: CoroutineScope get() = scope
@@ -38,6 +40,7 @@ class IosAppContainer @JvmOverloads constructor(
         emergencyDispatcher = emergencyDispatcher,
         peerBridge = bridge,
         timeProvider = timeProvider,
-        scope = scope
+        scope = scope,
+        planTier = planTier
     )
 }

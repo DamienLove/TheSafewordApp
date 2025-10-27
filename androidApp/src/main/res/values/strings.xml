@@ -48,6 +48,12 @@
     <string name="main_listening_subtitle_on">SafeWord is monitoring for your phrase and ready to alert your circle.</string>
     <string name="main_listening_subtitle_off">Tap to resume monitoring whenever you feel ready.</string>
     <string name="main_status_listening_chip_on">Listening live</string>
+    <string name="status_pending">Pending</string>
+    <string name="status_granted">Granted</string>
+    <string name="onboarding_core_permissions_title">Allow core access</string>
+    <string name="onboarding_core_permissions_description">Grant contacts, SMS, calls, and location so SafeWord can reach your circle.</string>
+    <string name="onboarding_allow_core_permissions">Grant core permissions</string>
+    <string name="onboarding_manage_notifications">Manage notifications</string>
     <string name="main_status_listening_chip_off">Listening paused</string>
     <string name="close_ad">Close ad</string>
     <string name="main_mode_label">Mode</string>
@@ -61,6 +67,15 @@
     <string name="main_action_settings_subtitle">Fine-tune alerts, siren, and automations.</string>
     <string name="main_status_peer_title">Peer link</string>
     <string name="main_status_contacts_title">Support crew</string>
+    <string name="upgrade_card_title">Unlock SafeWord Pro</string>
+    <string name="upgrade_card_subtitle">Go ad-free, enable incoming mode, and lift contact limits instantly.</string>
+    <string name="upgrade_card_cta">Upgrade now</string>
+    <string name="gift_card_title">Share SafeWord Pro</string>
+    <plurals name="gift_card_subtitle">
+        <item quantity="one">%d linked friend is still on SafeWord Free. Send them the upgrade.</item>
+        <item quantity="other">%d linked friends are still on SafeWord Free. Send the upgrade.</item>
+    </plurals>
+    <string name="gift_card_cta">Send a gift</string>
     <string name="link_status_disconnected">No SafeWord friends linked yet.</string>
     <plurals name="link_status_waiting">
         <item quantity="one">Waiting for SafeWord connection (%d friend linked).</item>
@@ -77,7 +92,7 @@
     <string name="contact_field_phone">Phone (+11234567890)</string>
     <string name="contact_field_email_optional">Email (optional)</string>
     <string name="contact_import_success">Contact imported</string>
-    <string name="contact_import_failed">Couldn\'t import that contact</string>
+    <string name="contact_import_failed">Could not import that contact</string>
     <string name="contact_import_no_number">That contact has no phone number</string>
     <string name="contact_import_cancelled">Import cancelled</string>
     <string name="contact_permission_denied">SafeWord needs contact access to import people from your phone book.</string>
@@ -95,6 +110,14 @@
     <string name="contact_signal_not_sent">%1$s is not ready for SafeWord alerts.</string>
     <string name="contact_signal_unlinked_hint">Mark this contact as a SafeWord friend to send pre-alerts automatically.</string>
     <string name="contact_message_body_non_emergency">Hey %1$s, checking in via SafeWord. No emergency.</string>
+    <string name="action_invite_contact">Invite to SafeWord</string>
+    <string name="action_gift_contact">Gift SafeWord Pro</string>
+    <string name="contact_invite_sent">SafeWord invite sent to %1$s.</string>
+    <string name="contact_invite_failed">Could not deliver the SafeWord invite to %1$s. Try again shortly.</string>
+    <string name="contact_gift_message_body">Hey %1$s, I am gifting you SafeWord Pro. Install it here: %2$s</string>
+    <string name="contact_gift_prompt">Gift link ready for %1$s.</string>
+    <string name="contact_gift_missing_phone">Add a phone number before sending a SafeWord gift.</string>
+    <string name="gift_flow_hint">Pick a SafeWord friend to send the Pro gift.</string>
     <string name="admob_banner_unit">ca-app-pub-5327057757821609/8317446089</string>
     <string name="admob_native_unit">ca-app-pub-5327057757821609/4853677944</string>
     <string name="admob_app_id">ca-app-pub-5327057757821609~9475449237</string>
@@ -121,5 +144,12 @@
         <item quantity="one">%d contact configured</item>
         <item quantity="other">%d contacts configured</item>
     </plurals>
+    <string name="safeword_pro_play_link">https://play.google.com/store/apps/details?id=com.safeword.pro</string>
 </resources>
+
+
+
+
+
+
 
