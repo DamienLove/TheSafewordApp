@@ -145,11 +145,12 @@
         <item quantity="other">%d contacts configured</item>
     </plurals>
     <string name="safeword_pro_play_link">https://play.google.com/store/apps/details?id=com.safeword.pro</string>
+
+    <string name="action_link_contact">Link</string>
+    <string name="action_link_pending">Pending...</string>
+    <string name="contact_link_request_sent">Link request sent to %1$s. They\'ll be notified to accept.</string>
+    <string name="contact_link_request_failed">Failed to send link request to %1$s. Check SMS permissions.</string>
+    <string name="contact_link_accepted">%1$s accepted your SafeWord link request!</string>
+    <string name="contact_link_received">%1$s wants to link with you via SafeWord. Link accepted automatically.</string>
+    <string name="contact_already_linked">%1$s is already linked as a SafeWord friend.</string>
 </resources>
-
-
-
-
-
-
-

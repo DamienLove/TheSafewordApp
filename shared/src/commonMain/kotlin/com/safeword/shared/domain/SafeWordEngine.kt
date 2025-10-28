@@ -400,6 +400,8 @@ class SafeWordEngine(
         private const val KEY_LON = "LON"
         private const val KEY_PLAN = "PLAN"
         private const val DOWNLOAD_URL = "https://safeword.app/download"
+        private const val TYPE_LINK_REQUEST = "LINK_REQUEST"
+        private const val TYPE_LINK_RESPONSE = "LINK_RESPONSE"
     }
 }
 
@@ -408,6 +410,3 @@ data class DashboardState(
     val contacts: List<Contact>? = null,
     val bridgeState: PeerBridgeState = PeerBridgeState.Idle
 )
-
-
-
