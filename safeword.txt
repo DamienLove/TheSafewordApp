@@ -2,7 +2,7 @@ SafeWord Delivery Notes
 =======================
 
 
-Last updated: 2025-10-26 (evening consolidated)
+Last updated: 2025-10-28 (post-alert-profile rollout)
 
 Environment Setup
 -----------------
@@ -95,18 +95,29 @@ GitHub Packages & Releases
   - Signed APKs uploaded as release assets and workflow artifact `android-apks-release`
   - Signed App Store `SafeWord.ipa` attached to releases
 
-Contact Pings & Gentle Alerts
-----------------------------
-- Contact cards now expose one-tap **Call**, **Message**, and **Ping** actions for quicker outreach.
-- Pings broadcast a gentle alert to linked SafeWord peers (~60% volume) and display a check-in notification.
-- Custom audio hooks: place `androidApp/src/main/res/raw/safeword_alert.(ogg|mp3)` for the siren loop and optional `safeword_ping.(ogg|mp3)` for the ping tone.
-- Unlinked contacts expose an **Invite to SafeWord** button that sends a structured SMS; recipients running the app auto-link while everyone else sees the download URL.
-- SafeWord Pro users can gift the upgrade directly from the contacts list whenever a linked friend is still on the Free tier.
+Contact Signals & Gentle Alerts
+-------------------------------
+- Contact cards expose **Call**, **Message**, **Link**, **Ping**, and invite/gift actions. Linked contacts now exchange SafeWord messages through an encoded, session-based handshake:
+  * Emergency/non-emergency messages stay in-app; we collect the text and wrap it inside the SafeWord payload.
+  * Calls trigger the SafeWord signal first; the dialer opens only after the remote device acknowledges the alert.
+  * Each signal includes GPS (when allowed) plus a unique session id; the receiver responds with an ACK so the sender knows it arrived.
+- Pings still broadcast a gentle alert and show a check-in notification on the receiving device.
+- Custom audio hooks: drop `androidApp/src/main/res/raw/safeword_alert.(ogg|mp3)` for sirens and `safeword_ping.(ogg|mp3)` for the gentle tone.
+- Unlinked contacts expose an **Invite to SafeWord** button that sends a structured SMS; recipients with the app auto-link, everyone else sees the store link.
+- SafeWord Pro users can continue to gift the upgrade directly from the contacts list whenever a linked friend is still on the Free tier.
 
-Voice Shortcuts
----------------
-- Android static shortcuts + Assistant App Actions added (`shortcuts.xml`, `actions.xml`). Users can say "Hey Google, start SafeWord listening" to toggle the service.
-- iOS now donates Siri Shortcuts when listening is enabled or the test alert runs; suggested phrases include "Start SafeWord" and "Run SafeWord test".
+Voice & Assistant Shortcuts
+---------------------------
+- Android still provides the static shortcuts/App Actions (“Start SafeWord listening”, “Run SafeWord test”). In addition, we now publish dynamic Assistant shortcuts matching the configured SafeWords; tapping or voicing the SafeWord phrase launches the encoded alert workflow (emergency vs check-in determined by which SafeWord fired).
+- iOS continues donating Siri Shortcuts when listening is enabled or during test alerts; suggested phrases include “Start SafeWord” and “Run SafeWord test”.
+
+Alert Profiles
+--------------
+- Emergency vs. check-in alerts are now fully configurable in Settings:
+  * Choose between Siren, Gentle chime, or Silent.
+  * Opt-in to boost the ringer / break through Do Not Disturb independently for each profile.
+- Settings persist through the multiplatform datastore/on-device `NSUserDefaults`. Legacy `playSiren` has been migrated to the new profile structure automatically.
+- Android exposes dropdown selectors and DND switches inside Settings; iOS stores the values (UI coming later).
 
 Dashboard UI Refresh
 --------------------
