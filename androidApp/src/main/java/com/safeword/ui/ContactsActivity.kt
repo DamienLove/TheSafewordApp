@@ -224,7 +224,7 @@ class ContactsActivity : AppCompatActivity() {
         val intent = Intent(Intent.ACTION_DIAL).apply {
             data = Uri.parse("tel:${contact.phone}")
         }
-        if (contact.isSafewordPeer) {
+        if (contact.linkStatus == ContactLinkStatus.LINKED) {
             showContactActionDialog(contact, ContactEngagementType.CALL) { _ ->
                 launchContactIntent(intent)
             }
@@ -235,7 +235,7 @@ class ContactsActivity : AppCompatActivity() {
     }
 
     private fun messageContact(contact: Contact) {
-        if (contact.isSafewordPeer) {
+        if (contact.linkStatus == ContactLinkStatus.LINKED) {
             showContactActionDialog(contact, ContactEngagementType.TEXT) { emergency ->
                 val template = if (emergency) {
                     R.string.contact_message_body
@@ -373,4 +373,3 @@ class ContactsActivity : AppCompatActivity() {
         }
     }
 }
-
