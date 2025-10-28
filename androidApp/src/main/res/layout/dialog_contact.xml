@@ -77,8 +77,17 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
+        android:enabled="false"
         android:text="@string/contact_mark_safeword_peer"
         android:textColor="@color/safeword_on_surface" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="@string/contact_link_helper"
+        android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+        android:textColor="@color/safeword_on_surface_variant" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/button_import"

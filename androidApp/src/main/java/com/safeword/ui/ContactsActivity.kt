@@ -14,6 +14,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -23,6 +24,7 @@ import com.safeword.BuildConfig
 import com.safeword.R
 import com.safeword.databinding.ActivityContactsBinding
 import com.safeword.databinding.DialogContactBinding
+import com.safeword.databinding.DialogMessageSignalBinding
 import com.safeword.shared.domain.model.Contact
 import com.safeword.shared.domain.model.ContactEngagementType
 import com.safeword.shared.domain.model.ContactLinkStatus
@@ -236,18 +238,7 @@ class ContactsActivity : AppCompatActivity() {
 
     private fun messageContact(contact: Contact) {
         if (contact.linkStatus == ContactLinkStatus.LINKED) {
-            showContactActionDialog(contact, ContactEngagementType.TEXT) { emergency ->
-                val template = if (emergency) {
-                    R.string.contact_message_body
-                } else {
-                    R.string.contact_message_body_non_emergency
-                }
-                val intent = Intent(Intent.ACTION_SENDTO).apply {
-                    data = Uri.parse("smsto:${contact.phone}")
-                    putExtra("sms_body", getString(template, contact.name))
-                }
-                launchContactIntent(intent)
-            }
+            showMessageSignalDialog(contact)
         } else {
             val intent = Intent(Intent.ACTION_SENDTO).apply {
                 data = Uri.parse("smsto:${contact.phone}")
@@ -342,7 +333,7 @@ class ContactsActivity : AppCompatActivity() {
             }
             .setPositiveButton(R.string.contact_action_proceed) { dialog, _ ->
                 val emergency = selectedIndex == 0
-                viewModel.sendContactSignal(contact, type, emergency) { sent ->
+                viewModel.sendContactSignal(contact, type, emergency, null) { sent ->
                     val feedback = if (sent) {
                         getString(R.string.contact_signal_sent, contact.name)
                     } else {
@@ -355,6 +346,55 @@ class ContactsActivity : AppCompatActivity() {
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+    }
+
+    private fun showMessageSignalDialog(contact: Contact) {
+        val dialogBinding = DialogMessageSignalBinding.inflate(LayoutInflater.from(this))
+        var emergencySelected = true
+        val updateMessageVisibility = {
+            dialogBinding.inputLayoutMessage.isVisible = !emergencySelected
+            if (emergencySelected) {
+                dialogBinding.inputLayoutMessage.error = null
+                dialogBinding.inputMessage.setText("")
+            }
+        }
+        dialogBinding.radioEmergency.isChecked = true
+        dialogBinding.radioNonEmergency.isChecked = false
+        dialogBinding.radioGroup.setOnCheckedChangeListener { _, checkedId ->
+            emergencySelected = checkedId == dialogBinding.radioEmergency.id
+            updateMessageVisibility()
+        }
+        updateMessageVisibility()
+
+        val dialog = AlertDialog.Builder(this)
+            .setTitle(getString(R.string.contact_action_message_title, contact.name))
+            .setView(dialogBinding.root)
+            .setNegativeButton(android.R.string.cancel, null)
+            .setPositiveButton(R.string.contact_action_send, null)
+            .create()
+
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE)?.setOnClickListener {
+                val message = dialogBinding.inputMessage.text?.toString()?.trim().orEmpty()
+                if (!emergencySelected && message.isBlank()) {
+                    dialogBinding.inputLayoutMessage.error = getString(R.string.contact_message_required)
+                    return@setOnClickListener
+                }
+                dialogBinding.inputLayoutMessage.error = null
+                val payloadMessage = if (emergencySelected) null else message
+                viewModel.sendContactSignal(contact, ContactEngagementType.TEXT, emergencySelected, payloadMessage) { sent ->
+                    val feedback = if (sent) {
+                        getString(R.string.contact_signal_sent, contact.name)
+                    } else {
+                        getString(R.string.contact_signal_not_sent, contact.name)
+                    }
+                    Snackbar.make(binding.root, feedback, Snackbar.LENGTH_SHORT).show()
+                }
+                dialog.dismiss()
+            }
+        }
+
+        dialog.show()
     }
 
     private fun launchContactIntent(intent: Intent) {

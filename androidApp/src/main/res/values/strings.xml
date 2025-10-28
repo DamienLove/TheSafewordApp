@@ -110,7 +110,11 @@
     <string name="contact_action_proceed">Continue</string>
     <string name="contact_signal_sent">SafeWord alert sent to %1$s.</string>
     <string name="contact_signal_not_sent">%1$s is not ready for SafeWord alerts.</string>
-    <string name="contact_signal_unlinked_hint">Mark this contact as a SafeWord friend to send pre-alerts automatically.</string>
+    <string name="contact_signal_unlinked_hint">Send a SafeWord link request to connect before using this shortcut.</string>
+    <string name="contact_action_send">Send</string>
+    <string name="contact_message_hint">Share a quick note for your SafeWord friend</string>
+    <string name="contact_message_required">Enter a message before sending.</string>
+    <string name="contact_link_helper">Save the contact, then use the Link button to request a SafeWord connection.</string>
     <string name="contact_message_body_non_emergency">Hey %1$s, checking in via SafeWord. No emergency.</string>
     <string name="action_invite_contact">Invite to SafeWord</string>
     <string name="action_gift_contact">Gift SafeWord Pro</string>
