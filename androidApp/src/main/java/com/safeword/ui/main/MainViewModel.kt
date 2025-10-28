@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.safeword.shared.bridge.model.PeerBridgeState
 import com.safeword.shared.domain.SafeWordEngine
+import com.safeword.shared.domain.model.ContactLinkStatus
 import com.safeword.shared.domain.model.PlanTier
 import com.safeword.shared.domain.usecase.ToggleListeningUseCase
 import com.safeword.shared.domain.usecase.ToggleTestModeUseCase
@@ -27,9 +28,9 @@ class MainViewModel @Inject constructor(
             MainUiState(
                 listeningEnabled = dashboard.settings?.listeningEnabled ?: false,
                 safeWordConfigured = dashboard.settings?.isConfigured ?: false,
-                safewordContacts = dashboard.contacts?.count { it.isSafewordPeer } ?: 0,
+                safewordContacts = dashboard.contacts?.count { it.linkStatus == ContactLinkStatus.LINKED } ?: 0,
                 totalContacts = dashboard.contacts?.size ?: 0,
-                linkedFreeContacts = dashboard.contacts?.count { it.isSafewordPeer && it.planTier == PlanTier.FREE } ?: 0,
+                linkedFreeContacts = dashboard.contacts?.count { it.linkStatus == ContactLinkStatus.LINKED && it.planTier == PlanTier.FREE } ?: 0,
                 peerState = dashboard.bridgeState
             )
         }

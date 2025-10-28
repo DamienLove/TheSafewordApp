@@ -40,6 +40,13 @@ class IosContactRepository(
         persist(contacts)
     }
 
+    override suspend fun findByPhone(phone: String): Contact? {
+        val normalised = phone.filterNot { it.isWhitespace() }
+        return state.value.firstOrNull { it.phone.filterNot(Char::isWhitespace) == normalised }
+    }
+
+    override suspend fun listContacts(): List<Contact> = state.value
+
     override suspend fun getContact(contactId: Long): Contact? = state.value.firstOrNull { it.id == contactId }
 
     private fun persist(contacts: List<Contact>) {

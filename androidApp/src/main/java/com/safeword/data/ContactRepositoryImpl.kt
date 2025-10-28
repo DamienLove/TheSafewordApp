@@ -3,6 +3,7 @@ package com.safeword.data
 import com.safeword.data.db.ContactDao
 import com.safeword.data.db.ContactEntity
 import com.safeword.shared.domain.model.Contact
+import com.safeword.shared.domain.model.ContactLinkStatus
 import com.safeword.shared.domain.model.PlanTier
 import com.safeword.shared.domain.repository.ContactRepository
 import kotlinx.coroutines.flow.Flow
@@ -36,15 +37,23 @@ class ContactRepositoryImpl(
     override suspend fun listContacts(): List<Contact> =
         dao.getAll().map { it.toDomain() }
 
-    private fun ContactEntity.toDomain(): Contact = Contact(
-        id = id,
-        name = name,
-        phone = phone,
-        email = email,
-        createdAtMillis = createdAt,
-        isSafewordPeer = safewordPeer,
-        planTier = planTier?.let { runCatching { PlanTier.valueOf(it) }.getOrNull() }
-    )
+    private fun ContactEntity.toDomain(): Contact {
+        val parsedStatus = runCatching { ContactLinkStatus.valueOf(linkStatus) }.getOrNull()
+        val status = when {
+            parsedStatus != null -> parsedStatus
+            safewordPeer -> ContactLinkStatus.LINKED
+            else -> ContactLinkStatus.UNLINKED
+        }
+        return Contact(
+            id = id,
+            name = name,
+            phone = phone,
+            email = email,
+            createdAtMillis = createdAt,
+            linkStatus = status,
+            planTier = planTier?.let { runCatching { PlanTier.valueOf(it) }.getOrNull() }
+        )
+    }
 
     private fun Contact.toEntity(): ContactEntity = ContactEntity(
         id = id ?: 0,
@@ -52,8 +61,10 @@ class ContactRepositoryImpl(
         phone = phone,
         email = email,
         createdAt = createdAtMillis,
-        safewordPeer = isSafewordPeer,
-        planTier = planTier?.name
+        safewordPeer = linkStatus == ContactLinkStatus.LINKED,
+        planTier = planTier?.name,
+        linkStatus = linkStatus.name
     )
 }
+
 

@@ -25,6 +25,7 @@ import com.safeword.databinding.ActivityContactsBinding
 import com.safeword.databinding.DialogContactBinding
 import com.safeword.shared.domain.model.Contact
 import com.safeword.shared.domain.model.ContactEngagementType
+import com.safeword.shared.domain.model.ContactLinkStatus
 import com.safeword.ui.contacts.ContactsAdapter
 import com.safeword.ui.contacts.ContactsViewModel
 import dagger.hilt.android.AndroidEntryPoint
@@ -75,6 +76,7 @@ class ContactsActivity : AppCompatActivity() {
             onCall = { contact -> callContact(contact) },
             onMessage = { contact -> messageContact(contact) },
             onPing = { contact -> pingContact(contact) },
+            onLink = { contact -> linkContact(contact) },
             onInvite = { contact -> inviteContact(contact) },
             onGift = { contact -> giftContact(contact) },
             canGift = !BuildConfig.FEATURE_ADS_ENABLED
@@ -102,7 +104,8 @@ class ContactsActivity : AppCompatActivity() {
         dialogBinding.inputName.setText(existing?.name.orEmpty())
         dialogBinding.inputPhone.setText(existing?.phone.orEmpty())
         dialogBinding.inputEmail.setText(existing?.email.orEmpty())
-        dialogBinding.switchSafewordPeer.isChecked = existing?.isSafewordPeer == true
+        dialogBinding.switchSafewordPeer.isChecked = existing?.linkStatus == ContactLinkStatus.LINKED
+        dialogBinding.switchSafewordPeer.isEnabled = false
         dialogBinding.textTitle.text = if (existing == null) {
             getString(R.string.add_contact)
         } else {
@@ -117,14 +120,14 @@ class ContactsActivity : AppCompatActivity() {
                 val rawPhone = dialogBinding.inputPhone.text?.toString().orEmpty()
                 val phone = PhoneNumberUtils.normalizeNumber(rawPhone) ?: rawPhone
                 val email = dialogBinding.inputEmail.text?.toString()
-                val safewordPeer = dialogBinding.switchSafewordPeer.isChecked
+                val linkStatus = existing?.linkStatus ?: ContactLinkStatus.UNLINKED
                 val contact = Contact(
                     id = existing?.id,
                     name = name,
                     phone = phone,
                     email = email,
                     createdAtMillis = existing?.createdAtMillis ?: System.currentTimeMillis(),
-                    isSafewordPeer = safewordPeer,
+                    linkStatus = linkStatus,
                     planTier = existing?.planTier
                 )
                 viewModel.save(contact)
@@ -221,7 +224,7 @@ class ContactsActivity : AppCompatActivity() {
         val intent = Intent(Intent.ACTION_DIAL).apply {
             data = Uri.parse("tel:${contact.phone}")
         }
-        if (contact.isSafewordPeer) {
+        if (contact.linkStatus == ContactLinkStatus.LINKED) {
             showContactActionDialog(contact, ContactEngagementType.CALL) { _ ->
                 launchContactIntent(intent)
             }
@@ -232,7 +235,7 @@ class ContactsActivity : AppCompatActivity() {
     }
 
     private fun messageContact(contact: Contact) {
-        if (contact.isSafewordPeer) {
+        if (contact.linkStatus == ContactLinkStatus.LINKED) {
             showContactActionDialog(contact, ContactEngagementType.TEXT) { emergency ->
                 val template = if (emergency) {
                     R.string.contact_message_body
@@ -274,6 +277,28 @@ class ContactsActivity : AppCompatActivity() {
                 getString(R.string.contact_invite_failed, contact.name)
             }
             Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun linkContact(contact: Contact) {
+        when (contact.linkStatus) {
+            ContactLinkStatus.LINKED -> {
+                Snackbar.make(binding.root, getString(R.string.contact_already_linked, contact.name), Snackbar.LENGTH_SHORT).show()
+                return
+            }
+            ContactLinkStatus.LINK_PENDING -> {
+                Snackbar.make(binding.root, getString(R.string.contact_link_request_pending, contact.name), Snackbar.LENGTH_SHORT).show()
+                return
+            }
+            ContactLinkStatus.UNLINKED -> Unit
+        }
+        viewModel.sendLinkRequest(contact) { sent ->
+            val messageRes = if (sent) {
+                R.string.contact_link_request_sent
+            } else {
+                R.string.contact_link_request_failed
+            }
+            Snackbar.make(binding.root, getString(messageRes, contact.name), Snackbar.LENGTH_SHORT).show()
         }
     }
 
@@ -348,4 +373,3 @@ class ContactsActivity : AppCompatActivity() {
         }
     }
 }
-

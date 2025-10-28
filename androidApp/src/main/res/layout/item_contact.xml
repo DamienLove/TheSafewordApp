@@ -73,7 +73,7 @@
             android:layout_marginTop="16dp"
             android:gravity="center"
             android:orientation="horizontal"
-            android:weightSum="3">
+            android:weightSum="4">
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/button_call"
@@ -100,6 +100,19 @@
                 app:iconGravity="textStart"
                 app:iconPadding="8dp"
                 app:iconTint="@color/safeword_on_surface" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/button_link"
+                style="@style/Widget.Material3.Button.TonalButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:text="@string/action_link_contact"
+                app:icon="@drawable/ic_contacts"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"
+                app:iconTint="@android:color/white" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/button_ping"

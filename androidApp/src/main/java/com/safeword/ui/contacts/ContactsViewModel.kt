@@ -59,4 +59,12 @@ class ContactsViewModel @Inject constructor(
             onResult(sent)
         }
     }
+
+    fun sendLinkRequest(contact: Contact, onResult: (Boolean) -> Unit) {
+        viewModelScope.launch {
+            val sent = engine.sendLinkRequest(contact)
+            onResult(sent)
+        }
+    }
 }
+

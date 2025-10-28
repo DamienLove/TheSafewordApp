@@ -25,7 +25,7 @@ object DatabaseModule {
         SafeWordDatabase::class.java,
         "safeword.db"
     )
-        .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+        .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
         .build()
 
     @Provides
@@ -46,3 +46,11 @@ private val MIGRATION_2_3 = object : Migration(2, 3) {
         database.execSQL("ALTER TABLE contacts ADD COLUMN planTier TEXT")
     }
 }
+
+private val MIGRATION_3_4 = object : Migration(3, 4) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE contacts ADD COLUMN linkStatus TEXT NOT NULL DEFAULT 'UNLINKED'")
+        database.execSQL("UPDATE contacts SET linkStatus = 'LINKED' WHERE safewordPeer = 1")
+    }
+}
+

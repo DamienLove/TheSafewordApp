@@ -11,5 +11,6 @@ data class ContactEntity(
     val email: String?,
     val createdAt: Long,
     val safewordPeer: Boolean,
-    val planTier: String?
+    val planTier: String?,
+    val linkStatus: String = "UNLINKED"
 )

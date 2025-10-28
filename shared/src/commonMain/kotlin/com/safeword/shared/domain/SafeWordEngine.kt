@@ -7,6 +7,7 @@ import com.safeword.shared.domain.model.AlertEvent
 import com.safeword.shared.domain.model.AlertSource
 import com.safeword.shared.domain.model.Contact
 import com.safeword.shared.domain.model.ContactEngagementType
+import com.safeword.shared.domain.model.ContactLinkStatus
 import com.safeword.shared.domain.model.PlanTier
 import com.safeword.shared.domain.model.SafeWordSettings
 import com.safeword.shared.domain.repository.AlertEventRepository
@@ -133,7 +134,7 @@ class SafeWordEngine(
         type: ContactEngagementType,
         emergency: Boolean
     ): Boolean {
-        if (type != ContactEngagementType.INVITE && !contact.isSafewordPeer) return false
+        if (type != ContactEngagementType.INVITE && contact.linkStatus == ContactLinkStatus.UNLINKED) return false
         val settings = dashboardState.value.settings ?: return false
         val timestamp = timeProvider.nowMillis()
         val includeLocation = settings.includeLocation && type != ContactEngagementType.INVITE
@@ -173,10 +174,48 @@ class SafeWordEngine(
         return sent
     }
 
+    suspend fun sendLinkRequest(contact: Contact): Boolean {
+        if (contact.linkStatus == ContactLinkStatus.LINKED || contact.phone.isBlank()) return false
+        val sent = sendLinkSignal(contact, TYPE_LINK_REQUEST)
+        if (sent) {
+            contactRepository.upsert(contact.copy(linkStatus = ContactLinkStatus.LINK_PENDING))
+        }
+        return sent
+    }
+
+    private suspend fun sendLinkSignal(contact: Contact, type: String): Boolean {
+        val timestamp = timeProvider.nowMillis()
+        val parts = mutableListOf(
+            CONTACT_SIGNAL_HEADER,
+            "$KEY_TYPE=$type",
+            "$KEY_EMERGENCY=0",
+            "$KEY_TIMESTAMP=$timestamp",
+            "$KEY_PLAN=${localPlanTier.name}"
+        )
+        val payload = parts.joinToString(separator = "|")
+        val friendly = linkMessageFor(type)
+        val body = buildString {
+            append(CONTACT_SIGNAL_PREFIX)
+            append(' ')
+            append(payload)
+            if (friendly.isNotEmpty()) {
+                append('\n')
+                append(friendly)
+            }
+        }
+        return dispatcher.sendSms(body, listOf(contact)) > 0
+    }
+
+    private fun linkMessageFor(type: String): String = when (type) {
+        TYPE_LINK_REQUEST -> "SafeWord link request: let's connect to keep each other safe."
+        TYPE_LINK_RESPONSE -> "SafeWord link confirmed. SafeWord alerts are now shared."
+        else -> ""
+    }
+
     suspend fun sendInvite(contact: Contact): Boolean {
         val sent = sendContactSignal(contact, ContactEngagementType.INVITE, emergency = false)
         if (sent) {
-            val updated = contact.copy(isSafewordPeer = true)
+            val updated = contact.copy(linkStatus = ContactLinkStatus.LINK_PENDING)
             contactRepository.upsert(updated)
         }
         return sent
@@ -287,41 +326,66 @@ class SafeWordEngine(
                 if (parts.size == 2) parts[0] to parts[1] else null
             }
             .toMap()
-        val type = data[KEY_TYPE]?.let { runCatching { ContactEngagementType.valueOf(it) }.getOrNull() }
-            ?: ContactEngagementType.CALL
+        val rawType = data[KEY_TYPE] ?: return
+        val type = runCatching { ContactEngagementType.valueOf(rawType) }.getOrNull()
         val emergency = data[KEY_EMERGENCY]?.toIntOrNull() == 1
         val lat = data[KEY_LAT]?.toDoubleOrNull()
         val lon = data[KEY_LON]?.toDoubleOrNull()
         val planTier = data[KEY_PLAN]?.let { runCatching { PlanTier.valueOf(it) }.getOrNull() }
 
         val existing = contactRepository.findByPhone(phone)
-        val candidate = if (existing == null) {
-            Contact(
-                id = null,
-                name = phone,
-                phone = phone,
-                email = null,
-                createdAtMillis = timeProvider.nowMillis(),
-                isSafewordPeer = true,
-                planTier = planTier
-            )
-        } else {
-            existing.copy(
-                isSafewordPeer = true,
-                planTier = planTier ?: existing.planTier
-            )
-        }
-        val resolved = contactRepository.upsert(candidate)
+        val baseContact = existing ?: Contact(
+            id = null,
+            name = phone,
+            phone = phone,
+            email = null,
+            createdAtMillis = timeProvider.nowMillis(),
+            linkStatus = ContactLinkStatus.UNLINKED,
+            planTier = planTier
+        )
 
+        val resolvedStatus = when (rawType) {
+            TYPE_LINK_REQUEST, TYPE_LINK_RESPONSE -> ContactLinkStatus.LINKED
+            else -> when (baseContact.linkStatus) {
+                ContactLinkStatus.UNLINKED -> if (type != null) ContactLinkStatus.LINKED else ContactLinkStatus.UNLINKED
+                else -> baseContact.linkStatus
+            }
+        }
+
+        val resolved = contactRepository.upsert(
+            baseContact.copy(
+                linkStatus = resolvedStatus,
+                planTier = planTier ?: baseContact.planTier
+            )
+        )
+
+        when (rawType) {
+            TYPE_LINK_REQUEST -> {
+                dispatcher.raiseRinger()
+                dispatcher.playGentleTone()
+                dispatcher.showLinkNotification(resolved.name, "SafeWord link request received. You are now connected.")
+                sendLinkSignal(resolved, TYPE_LINK_RESPONSE)
+                return
+            }
+            TYPE_LINK_RESPONSE -> {
+                dispatcher.raiseRinger()
+                dispatcher.playGentleTone()
+                dispatcher.showLinkNotification(resolved.name, "SafeWord link confirmed with ${resolved.name}.")
+                return
+            }
+        }
+
+        val descriptor = if (emergency) {
+            "Emergency ${type?.name?.lowercase() ?: "message"}"
+        } else {
+            "Check-in ${type?.name?.lowercase() ?: "message"}"
+        }
         dispatcher.raiseRinger()
         dispatcher.playGentleTone()
+        val locationText = if (lat != null && lon != null) "\nhttps://maps.google.com/?q=$lat,$lon" else ""
         val prompt = when (type) {
             ContactEngagementType.INVITE -> buildInviteReceivedMessage(resolved.name, planTier)
-            else -> {
-                val descriptor = if (emergency) "Emergency ${type.name.lowercase()}" else "Check-in ${type.name.lowercase()}"
-                val locationText = if (lat != null && lon != null) "\nhttps://maps.google.com/?q=$lat,$lon" else ""
-                "$descriptor from ${resolved.name}.$locationText"
-            }
+            else -> "$descriptor from ${resolved.name}.$locationText"
         }
         dispatcher.showCheckInPrompt(resolved.name, prompt)
     }
@@ -336,6 +400,8 @@ class SafeWordEngine(
         private const val KEY_LON = "LON"
         private const val KEY_PLAN = "PLAN"
         private const val DOWNLOAD_URL = "https://safeword.app/download"
+        private const val TYPE_LINK_REQUEST = "LINK_REQUEST"
+        private const val TYPE_LINK_RESPONSE = "LINK_RESPONSE"
     }
 }
 
