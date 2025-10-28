@@ -45,10 +45,11 @@ class ContactsViewModel @Inject constructor(
         contact: Contact,
         type: ContactEngagementType,
         emergency: Boolean,
+        message: String? = null,
         onResult: (Boolean) -> Unit
     ) {
         viewModelScope.launch {
-            val sent = engine.sendContactSignal(contact, type, emergency)
+            val sent = engine.sendContactSignal(contact, type, emergency, message)
             onResult(sent)
         }
     }

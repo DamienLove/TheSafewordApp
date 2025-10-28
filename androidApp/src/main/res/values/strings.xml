@@ -27,10 +27,12 @@
     <string name="notification_channel_alerts">SafeWord Alerts</string>
     <string name="notification_channel_peer">SafeWord Bridge</string>
     <string name="notification_channel_check_in">SafeWord Check-Ins</string>
+    <string name="notification_channel_link">SafeWord Links</string>
     <string name="notification_title_listening">Listening for safe words</string>
     <string name="notification_title_alert">Emergency escalation triggered</string>
     <string name="notification_title_peer">SafeWord Bridge</string>
     <string name="notification_title_check_in">Check in for %1$s</string>
+    <string name="notification_title_link">SafeWord link update for %1$s</string>
     <string name="open_settings">Open Settings</string>
     <string name="action_call_contact">Call</string>
     <string name="action_text_contact">Message</string>
@@ -108,7 +110,11 @@
     <string name="contact_action_proceed">Continue</string>
     <string name="contact_signal_sent">SafeWord alert sent to %1$s.</string>
     <string name="contact_signal_not_sent">%1$s is not ready for SafeWord alerts.</string>
-    <string name="contact_signal_unlinked_hint">Mark this contact as a SafeWord friend to send pre-alerts automatically.</string>
+    <string name="contact_signal_unlinked_hint">Send a SafeWord link request to connect before using this shortcut.</string>
+    <string name="contact_action_send">Send</string>
+    <string name="contact_message_hint">Share a quick note for your SafeWord friend</string>
+    <string name="contact_message_required">Enter a message before sending.</string>
+    <string name="contact_link_helper">Save the contact, then use the Link button to request a SafeWord connection.</string>
     <string name="contact_message_body_non_emergency">Hey %1$s, checking in via SafeWord. No emergency.</string>
     <string name="action_invite_contact">Invite to SafeWord</string>
     <string name="action_gift_contact">Gift SafeWord Pro</string>
@@ -148,6 +154,7 @@
 
     <string name="action_link_contact">Link</string>
     <string name="action_link_pending">Pending...</string>
+    <string name="contact_link_request_pending">Waiting for %1$s to accept your SafeWord link.</string>
     <string name="contact_link_request_sent">Link request sent to %1$s. They\'ll be notified to accept.</string>
     <string name="contact_link_request_failed">Failed to send link request to %1$s. Check SMS permissions.</string>
     <string name="contact_link_accepted">%1$s accepted your SafeWord link request!</string>

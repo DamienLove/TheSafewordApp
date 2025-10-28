@@ -24,6 +24,8 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 class SafeWordEngine(
     private val settingsGateway: SettingsGateway,
@@ -129,10 +131,12 @@ class SafeWordEngine(
         return true
     }
 
+    @OptIn(ExperimentalEncodingApi::class)
     suspend fun sendContactSignal(
         contact: Contact,
         type: ContactEngagementType,
-        emergency: Boolean
+        emergency: Boolean,
+        message: String? = null
     ): Boolean {
         if (type != ContactEngagementType.INVITE && contact.linkStatus == ContactLinkStatus.UNLINKED) return false
         val settings = dashboardState.value.settings ?: return false
@@ -150,6 +154,11 @@ class SafeWordEngine(
             parts += "$KEY_LAT=$lat"
             parts += "$KEY_LON=$lon"
         }
+        val cleanedMessage = message?.trim()?.takeIf { it.isNotEmpty() }
+        val encodedMessage = cleanedMessage?.let { Base64.Default.encode(it.encodeToByteArray()) }
+        if (encodedMessage != null) {
+            parts += "$KEY_MESSAGE=$encodedMessage"
+        }
         val payload = parts.joinToString(separator = "|")
         val locationLink = location?.let { " https://maps.google.com/?q=${it.first},${it.second}" } ?: ""
         val friendly = when (type) {
@@ -159,7 +168,13 @@ class SafeWordEngine(
             }
             ContactEngagementType.TEXT -> {
                 val tone = if (emergency) "Emergency" else "Check-in"
-                "$tone message request via SafeWord.$locationLink"
+                buildString {
+                    append("$tone message via SafeWord.$locationLink")
+                    if (cleanedMessage != null) {
+                        append("\nMessage: ")
+                        append(cleanedMessage)
+                    }
+                }
             }
             ContactEngagementType.INVITE -> buildInviteMessage()
         }
@@ -315,6 +330,7 @@ class SafeWordEngine(
         dispatcher.showCheckInPrompt(event.contactName, event.message)
     }
 
+    @OptIn(ExperimentalEncodingApi::class)
     private suspend fun handleIncomingContactSignal(senderPhone: String?, message: String) {
         val phone = senderPhone ?: return
         val encoded = message.substringAfter(CONTACT_SIGNAL_PREFIX).lineSequence().firstOrNull()?.trim() ?: return
@@ -332,6 +348,11 @@ class SafeWordEngine(
         val lat = data[KEY_LAT]?.toDoubleOrNull()
         val lon = data[KEY_LON]?.toDoubleOrNull()
         val planTier = data[KEY_PLAN]?.let { runCatching { PlanTier.valueOf(it) }.getOrNull() }
+        val messageText = data[KEY_MESSAGE]
+            ?.let { runCatching { Base64.Default.decode(it) }.getOrNull() }
+            ?.decodeToString()
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
 
         val existing = contactRepository.findByPhone(phone)
         val baseContact = existing ?: Contact(
@@ -385,7 +406,14 @@ class SafeWordEngine(
         val locationText = if (lat != null && lon != null) "\nhttps://maps.google.com/?q=$lat,$lon" else ""
         val prompt = when (type) {
             ContactEngagementType.INVITE -> buildInviteReceivedMessage(resolved.name, planTier)
-            else -> "$descriptor from ${resolved.name}.$locationText"
+            else -> buildString {
+                append("$descriptor from ${resolved.name}.")
+                if (messageText != null) {
+                    append("\n")
+                    append(messageText)
+                }
+                append(locationText)
+            }
         }
         dispatcher.showCheckInPrompt(resolved.name, prompt)
     }
@@ -399,6 +427,7 @@ class SafeWordEngine(
         private const val KEY_LAT = "LAT"
         private const val KEY_LON = "LON"
         private const val KEY_PLAN = "PLAN"
+        private const val KEY_MESSAGE = "MSG"
         private const val DOWNLOAD_URL = "https://safeword.app/download"
         private const val TYPE_LINK_REQUEST = "LINK_REQUEST"
         private const val TYPE_LINK_RESPONSE = "LINK_RESPONSE"
