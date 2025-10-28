@@ -3,6 +3,8 @@ package com.safeword.data.prefs
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.*
 import com.safeword.shared.config.Defaults
+import com.safeword.shared.domain.model.AlertProfile
+import com.safeword.shared.domain.model.AlertSound
 import com.safeword.shared.domain.model.SafeWordSettings
 import com.safeword.shared.domain.repository.SettingsGateway
 import kotlinx.coroutines.flow.Flow
@@ -30,8 +32,12 @@ class SettingsGatewayImpl(
             prefs[SENSITIVITY] = updated.sensitivity
             prefs[LISTENING_ENABLED] = updated.listeningEnabled
             prefs[INCLUDE_LOCATION] = updated.includeLocation
-            prefs[PLAY_SIREN] = updated.playSiren
+            prefs[EMERGENCY_SOUND] = updated.emergencyAlert.sound.name
+            prefs[EMERGENCY_BOOST] = updated.emergencyAlert.boostRinger
+            prefs[CHECKIN_SOUND] = updated.nonEmergencyAlert.sound.name
+            prefs[CHECKIN_BOOST] = updated.nonEmergencyAlert.boostRinger
             prefs[TEST_MODE] = updated.testMode
+            prefs.remove(PLAY_SIREN)
         }
     }
 
@@ -41,7 +47,14 @@ class SettingsGatewayImpl(
         sensitivity = this[SENSITIVITY] ?: Defaults.settings.sensitivity,
         listeningEnabled = this[LISTENING_ENABLED] ?: Defaults.settings.listeningEnabled,
         includeLocation = this[INCLUDE_LOCATION] ?: Defaults.settings.includeLocation,
-        playSiren = this[PLAY_SIREN] ?: Defaults.settings.playSiren,
+        emergencyAlert = AlertProfile(
+            sound = this[EMERGENCY_SOUND]?.let { runCatching { AlertSound.valueOf(it) }.getOrNull() } ?: Defaults.settings.emergencyAlert.sound,
+            boostRinger = this[EMERGENCY_BOOST] ?: Defaults.settings.emergencyAlert.boostRinger
+        ),
+        nonEmergencyAlert = AlertProfile(
+            sound = this[CHECKIN_SOUND]?.let { runCatching { AlertSound.valueOf(it) }.getOrNull() } ?: Defaults.settings.nonEmergencyAlert.sound,
+            boostRinger = this[CHECKIN_BOOST] ?: Defaults.settings.nonEmergencyAlert.boostRinger
+        ),
         testMode = this[TEST_MODE] ?: Defaults.settings.testMode
     )
 
@@ -51,6 +64,10 @@ class SettingsGatewayImpl(
         val SENSITIVITY = intPreferencesKey("sensitivity")
         val LISTENING_ENABLED = booleanPreferencesKey("listening_enabled")
         val INCLUDE_LOCATION = booleanPreferencesKey("include_location")
+        val EMERGENCY_SOUND = stringPreferencesKey("emergency_sound")
+        val EMERGENCY_BOOST = booleanPreferencesKey("emergency_boost")
+        val CHECKIN_SOUND = stringPreferencesKey("checkin_sound")
+        val CHECKIN_BOOST = booleanPreferencesKey("checkin_boost")
         val PLAY_SIREN = booleanPreferencesKey("play_siren")
         val TEST_MODE = booleanPreferencesKey("test_mode")
     }

@@ -221,6 +221,18 @@ class MainActivity : ComponentActivity() {
             MainActivity.ACTION_RUN_TEST -> {
                 EmergencyHandlerService.trigger(this, "TEST", AlertSource.TEST)
             }
+            MainActivity.ACTION_TRIGGER_SAFEWORD_SHORTCUT -> {
+                val phrase = intent.getStringExtra(EXTRA_SAFEWORD_PHRASE)
+                val emergency = intent.getBooleanExtra(EXTRA_SAFEWORD_EMERGENCY, true)
+                if (!phrase.isNullOrBlank()) {
+                    EmergencyHandlerService.trigger(
+                        context = this,
+                        detectedWord = phrase,
+                        source = AlertSource.ASSISTANT,
+                        emergency = emergency
+                    )
+                }
+            }
         }
     }
 
@@ -289,5 +301,8 @@ class MainActivity : ComponentActivity() {
     companion object {
         const val ACTION_START_LISTENING = "com.safeword.action.START_LISTENING"
         const val ACTION_RUN_TEST = "com.safeword.action.RUN_TEST"
+        const val ACTION_TRIGGER_SAFEWORD_SHORTCUT = "com.safeword.action.TRIGGER_SAFEWORD_SHORTCUT"
+        const val EXTRA_SAFEWORD_PHRASE = "extra_safeword_phrase"
+        const val EXTRA_SAFEWORD_EMERGENCY = "extra_safeword_emergency"
     }
 }

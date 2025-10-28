@@ -15,7 +15,8 @@ import com.safeword.shared.domain.service.EmergencyDispatcher
 import com.safeword.shared.domain.usecase.DeleteContactUseCase
 import com.safeword.shared.domain.usecase.ToggleIncludeLocationUseCase
 import com.safeword.shared.domain.usecase.ToggleListeningUseCase
-import com.safeword.shared.domain.usecase.TogglePlaySirenUseCase
+import com.safeword.shared.domain.usecase.UpdateCheckInAlertProfileUseCase
+import com.safeword.shared.domain.usecase.UpdateEmergencyAlertProfileUseCase
 import com.safeword.shared.domain.usecase.ToggleTestModeUseCase
 import com.safeword.shared.domain.usecase.UpdateSafeWordsUseCase
 import com.safeword.shared.domain.usecase.UpdateSensitivityUseCase
@@ -25,6 +26,7 @@ import com.safeword.shared.util.TimeProvider
 import com.safeword.util.LocationHelper
 import com.safeword.util.NotificationHelper
 import com.safeword.util.RingerManager
+import com.safeword.util.AssistantShortcutUpdater
 import com.safeword.util.SmsSender
 import com.safeword.util.SoundPlayer
 import dagger.Module
@@ -57,6 +59,11 @@ object DomainModule {
     @Provides
     @Singleton
     fun provideLocationHelper(@ApplicationContext context: Context) = LocationHelper(context)
+
+    @Provides
+    @Singleton
+    fun provideAssistantShortcutUpdater(@ApplicationContext context: Context): AssistantShortcutUpdater =
+        AssistantShortcutUpdater(context)
 
     @Provides
     @Singleton
@@ -133,8 +140,12 @@ object DomainModule {
         ToggleIncludeLocationUseCase(settingsGateway)
 
     @Provides
-    fun provideTogglePlaySirenUseCase(settingsGateway: SettingsGateway) =
-        TogglePlaySirenUseCase(settingsGateway)
+    fun provideUpdateEmergencyAlertProfileUseCase(settingsGateway: SettingsGateway) =
+        UpdateEmergencyAlertProfileUseCase(settingsGateway)
+
+    @Provides
+    fun provideUpdateCheckInAlertProfileUseCase(settingsGateway: SettingsGateway) =
+        UpdateCheckInAlertProfileUseCase(settingsGateway)
 
     @Provides
     fun provideToggleTestModeUseCase(settingsGateway: SettingsGateway) =

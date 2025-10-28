@@ -1,5 +1,7 @@
 package com.safeword.shared.domain.usecase
 
+import com.safeword.shared.domain.model.AlertProfile
+import com.safeword.shared.domain.model.AlertSound
 import com.safeword.shared.domain.model.SafeWordSettings
 import com.safeword.shared.domain.repository.SettingsGateway
 
@@ -41,11 +43,23 @@ class ToggleIncludeLocationUseCase(
     }
 }
 
-class TogglePlaySirenUseCase(
+class UpdateEmergencyAlertProfileUseCase(
     private val settingsGateway: SettingsGateway
 ) {
-    suspend operator fun invoke(play: Boolean) {
-        settingsGateway.update { it.copy(playSiren = play) }
+    suspend operator fun invoke(sound: AlertSound, boostRinger: Boolean) {
+        settingsGateway.update {
+            it.copy(emergencyAlert = AlertProfile(sound = sound, boostRinger = boostRinger))
+        }
+    }
+}
+
+class UpdateCheckInAlertProfileUseCase(
+    private val settingsGateway: SettingsGateway
+) {
+    suspend operator fun invoke(sound: AlertSound, boostRinger: Boolean) {
+        settingsGateway.update {
+            it.copy(nonEmergencyAlert = AlertProfile(sound = sound, boostRinger = boostRinger))
+        }
     }
 }
 

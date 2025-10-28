@@ -24,8 +24,9 @@ class EmergencyHandlerService : Service() {
         val word = intent?.getStringExtra(EXTRA_WORD) ?: return START_NOT_STICKY
         val sourceString = intent.getStringExtra(EXTRA_SOURCE) ?: AlertSource.VOICE.name
         val source = runCatching { AlertSource.valueOf(sourceString) }.getOrDefault(AlertSource.VOICE)
+        val emergency = intent.getBooleanExtra(EXTRA_EMERGENCY, true)
         scope.launch {
-            engine.triggerManual(word, source)
+            engine.triggerManual(word, source, emergency = emergency)
             stopSelf(startId)
         }
         return START_NOT_STICKY
@@ -41,11 +42,18 @@ class EmergencyHandlerService : Service() {
     companion object {
         private const val EXTRA_WORD = "extra_word"
         private const val EXTRA_SOURCE = "extra_source"
+        private const val EXTRA_EMERGENCY = "extra_emergency"
 
-        fun trigger(context: Context, detectedWord: String, source: AlertSource) {
+        fun trigger(
+            context: Context,
+            detectedWord: String,
+            source: AlertSource,
+            emergency: Boolean = true
+        ) {
             val intent = Intent(context, EmergencyHandlerService::class.java).apply {
                 putExtra(EXTRA_WORD, detectedWord)
                 putExtra(EXTRA_SOURCE, source.name)
+                putExtra(EXTRA_EMERGENCY, emergency)
             }
             context.startService(intent)
         }

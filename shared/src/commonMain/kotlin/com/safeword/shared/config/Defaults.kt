@@ -1,5 +1,7 @@
 package com.safeword.shared.config
 
+import com.safeword.shared.domain.model.AlertProfile
+import com.safeword.shared.domain.model.AlertSound
 import com.safeword.shared.domain.model.SafeWordSettings
 
 object Defaults {
@@ -9,7 +11,8 @@ object Defaults {
         sensitivity = 50,
         listeningEnabled = false,
         includeLocation = true,
-        playSiren = false,
+        emergencyAlert = AlertProfile(sound = AlertSound.SIREN, boostRinger = true),
+        nonEmergencyAlert = AlertProfile(sound = AlertSound.GENTLE, boostRinger = false),
         testMode = false
     )
 }

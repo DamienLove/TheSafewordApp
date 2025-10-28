@@ -8,13 +8,17 @@ import com.safeword.shared.domain.model.AlertSource
 import com.safeword.shared.domain.model.Contact
 import com.safeword.shared.domain.model.ContactEngagementType
 import com.safeword.shared.domain.model.ContactLinkStatus
+import com.safeword.shared.domain.model.AlertProfile
 import com.safeword.shared.domain.model.PlanTier
 import com.safeword.shared.domain.model.SafeWordSettings
+import com.safeword.shared.domain.model.AlertSound
 import com.safeword.shared.domain.repository.AlertEventRepository
 import com.safeword.shared.domain.repository.ContactRepository
 import com.safeword.shared.domain.repository.SettingsGateway
 import com.safeword.shared.domain.service.EmergencyDispatcher
+import com.safeword.shared.config.Defaults
 import com.safeword.shared.util.TimeProvider
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -24,8 +28,12 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
+import kotlin.random.Random
 
 class SafeWordEngine(
     private val settingsGateway: SettingsGateway,
@@ -39,6 +47,8 @@ class SafeWordEngine(
 ) {
 
     private val engineScope = CoroutineScope(scope.coroutineContext + Job())
+    private val pendingSignals = mutableMapOf<String, CompletableDeferred<Boolean>>()
+    private val pendingMutex = Mutex()
 
     val dashboardState: StateFlow<DashboardState> =
         combine(settingsGateway.settings, contactRepository.observeContacts(), peerBridge.state) { settings, contacts, bridgeState ->
@@ -143,12 +153,15 @@ class SafeWordEngine(
         val timestamp = timeProvider.nowMillis()
         val includeLocation = settings.includeLocation && type != ContactEngagementType.INVITE
         val location = if (includeLocation) dispatcher.resolveLocation() else null
+        val sessionId = "${timestamp.toString(36)}-${Random.nextInt(1000, 9999)}"
         val parts = mutableListOf(
             CONTACT_SIGNAL_HEADER,
             "$KEY_TYPE=${type.name}",
             "$KEY_EMERGENCY=${if (emergency) 1 else 0}",
             "$KEY_TIMESTAMP=$timestamp",
-            "$KEY_PLAN=${localPlanTier.name}"
+            "$KEY_PLAN=${localPlanTier.name}",
+            "$KEY_STATE=$STATE_REQUEST",
+            "$KEY_SESSION=$sessionId"
         )
         location?.let { (lat, lon) ->
             parts += "$KEY_LAT=$lat"
@@ -185,8 +198,24 @@ class SafeWordEngine(
             append('\n')
             append(friendly)
         }
+        val expectAck = type != ContactEngagementType.INVITE
+        val deferred = if (expectAck) CompletableDeferred<Boolean>() else null
+        if (deferred != null) {
+            pendingMutex.withLock { pendingSignals[sessionId] = deferred }
+        }
         val sent = dispatcher.sendSms(body, listOf(contact)) > 0
-        return sent
+        if (!sent) {
+            if (deferred != null) {
+                pendingMutex.withLock { pendingSignals.remove(sessionId)?.cancel() }
+            }
+            return false
+        }
+        if (!expectAck) return true
+        val acknowledged = withTimeoutOrNull(ACK_TIMEOUT_MS) { deferred!!.await() } == true
+        if (!acknowledged) {
+            pendingMutex.withLock { pendingSignals.remove(sessionId)?.cancel() }
+        }
+        return acknowledged
     }
 
     suspend fun sendLinkRequest(contact: Contact): Boolean {
@@ -250,6 +279,18 @@ class SafeWordEngine(
         return "$contactName invited you to connect on $tierLabel.\nOpen SafeWord to finish linking."
     }
 
+    private suspend fun applyAlertProfile(profile: AlertProfile) {
+        if (profile.boostRinger) {
+            dispatcher.raiseRinger()
+        }
+        dispatcher.playSiren(false)
+        when (profile.sound) {
+            AlertSound.SIREN -> dispatcher.playSiren(true)
+            AlertSound.GENTLE -> dispatcher.playGentleTone()
+            AlertSound.SILENT -> Unit
+        }
+    }
+
     private suspend fun triggerEmergency(
         detectedWord: String,
         source: AlertSource,
@@ -260,12 +301,8 @@ class SafeWordEngine(
         val contacts = dashboardState.value.contacts ?: emptyList()
         val timestamp = timeProvider.nowMillis()
 
-        dispatcher.raiseRinger()
-        if (emergency && settings.playSiren) {
-            dispatcher.playSiren(true)
-        } else {
-            dispatcher.playGentleTone()
-        }
+        val alertProfile = if (emergency) settings.emergencyAlert else settings.nonEmergencyAlert
+        applyAlertProfile(alertProfile)
 
         val location = if (settings.includeLocation) dispatcher.resolveLocation() else null
         val locationText = location?.let { " https://maps.google.com/?q=${it.first},${it.second}" } ?: ""
@@ -305,8 +342,8 @@ class SafeWordEngine(
 
     private suspend fun handleIncomingPeerAlert(alert: AlertEvent) {
         val contacts = dashboardState.value.contacts ?: emptyList()
-        dispatcher.raiseRinger()
-        dispatcher.playSiren(true)
+        val settingsSnapshot = dashboardState.value.settings ?: Defaults.settings
+        applyAlertProfile(settingsSnapshot.emergencyAlert)
 
         val notified = dispatcher.sendSms(
             message = "SafeWord peer alert (${alert.source.name}): \"${alert.detectedWord}\" from linked device.",
@@ -326,7 +363,8 @@ class SafeWordEngine(
     }
 
     private suspend fun handleIncomingCheckIn(event: PeerBridgeEvent.CheckIn) {
-        dispatcher.playGentleTone()
+        val settingsSnapshot = dashboardState.value.settings ?: Defaults.settings
+        applyAlertProfile(settingsSnapshot.nonEmergencyAlert)
         dispatcher.showCheckInPrompt(event.contactName, event.message)
     }
 
@@ -348,11 +386,20 @@ class SafeWordEngine(
         val lat = data[KEY_LAT]?.toDoubleOrNull()
         val lon = data[KEY_LON]?.toDoubleOrNull()
         val planTier = data[KEY_PLAN]?.let { runCatching { PlanTier.valueOf(it) }.getOrNull() }
+        val state = data[KEY_STATE]
+        val sessionId = data[KEY_SESSION]
         val messageText = data[KEY_MESSAGE]
             ?.let { runCatching { Base64.Default.decode(it) }.getOrNull() }
             ?.decodeToString()
             ?.trim()
             ?.takeIf { it.isNotEmpty() }
+
+        if (state == STATE_ACK && sessionId != null) {
+            pendingMutex.withLock {
+                pendingSignals.remove(sessionId)?.complete(true)
+            }
+            return
+        }
 
         val existing = contactRepository.findByPhone(phone)
         val baseContact = existing ?: Contact(
@@ -380,6 +427,8 @@ class SafeWordEngine(
             )
         )
 
+        val settingsSnapshot = dashboardState.value.settings ?: Defaults.settings
+
         when (rawType) {
             TYPE_LINK_REQUEST -> {
                 dispatcher.raiseRinger()
@@ -401,8 +450,8 @@ class SafeWordEngine(
         } else {
             "Check-in ${type?.name?.lowercase() ?: "message"}"
         }
-        dispatcher.raiseRinger()
-        dispatcher.playGentleTone()
+        val alertProfile = if (emergency) settingsSnapshot.emergencyAlert else settingsSnapshot.nonEmergencyAlert
+        applyAlertProfile(alertProfile)
         val locationText = if (lat != null && lon != null) "\nhttps://maps.google.com/?q=$lat,$lon" else ""
         val prompt = when (type) {
             ContactEngagementType.INVITE -> buildInviteReceivedMessage(resolved.name, planTier)
@@ -416,6 +465,35 @@ class SafeWordEngine(
             }
         }
         dispatcher.showCheckInPrompt(resolved.name, prompt)
+        if (sessionId != null) {
+            sendAcknowledgement(resolved, rawType, emergency, sessionId)
+        }
+    }
+
+    private suspend fun sendAcknowledgement(
+        contact: Contact,
+        type: String,
+        emergency: Boolean,
+        sessionId: String
+    ) {
+        val parts = listOf(
+            CONTACT_SIGNAL_HEADER,
+            "$KEY_TYPE=$type",
+            "$KEY_EMERGENCY=${if (emergency) 1 else 0}",
+            "$KEY_TIMESTAMP=${timeProvider.nowMillis()}",
+            "$KEY_PLAN=${localPlanTier.name}",
+            "$KEY_STATE=$STATE_ACK",
+            "$KEY_SESSION=$sessionId"
+        )
+        val payload = parts.joinToString(separator = "|")
+        val body = buildString {
+            append(CONTACT_SIGNAL_PREFIX)
+            append(' ')
+            append(payload)
+            append('\n')
+            append("SafeWord confirmation received.")
+        }
+        dispatcher.sendSms(body, listOf(contact))
     }
 
     companion object {
@@ -428,6 +506,11 @@ class SafeWordEngine(
         private const val KEY_LON = "LON"
         private const val KEY_PLAN = "PLAN"
         private const val KEY_MESSAGE = "MSG"
+        private const val KEY_STATE = "STATE"
+        private const val KEY_SESSION = "SID"
+        private const val STATE_REQUEST = "REQ"
+        private const val STATE_ACK = "ACK"
+        private const val ACK_TIMEOUT_MS = 15_000L
         private const val DOWNLOAD_URL = "https://safeword.app/download"
         private const val TYPE_LINK_REQUEST = "LINK_REQUEST"
         private const val TYPE_LINK_RESPONSE = "LINK_RESPONSE"

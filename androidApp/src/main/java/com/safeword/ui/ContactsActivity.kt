@@ -227,8 +227,10 @@ class ContactsActivity : AppCompatActivity() {
             data = Uri.parse("tel:${contact.phone}")
         }
         if (contact.linkStatus == ContactLinkStatus.LINKED) {
-            showContactActionDialog(contact, ContactEngagementType.CALL) { _ ->
-                launchContactIntent(intent)
+            showContactActionDialog(contact, ContactEngagementType.CALL) { _, confirmed ->
+                if (confirmed) {
+                    launchContactIntent(intent)
+                }
             }
         } else {
             launchContactIntent(intent)
@@ -314,7 +316,7 @@ class ContactsActivity : AppCompatActivity() {
     private fun showContactActionDialog(
         contact: Contact,
         type: ContactEngagementType,
-        onProceed: (Boolean) -> Unit
+        onProceed: (Boolean, Boolean) -> Unit
     ) {
         var selectedIndex = 0
         val options = arrayOf(
@@ -340,7 +342,7 @@ class ContactsActivity : AppCompatActivity() {
                         getString(R.string.contact_signal_not_sent, contact.name)
                     }
                     Snackbar.make(binding.root, feedback, Snackbar.LENGTH_SHORT).show()
-                    onProceed(emergency)
+                    onProceed(emergency, sent)
                 }
                 dialog.dismiss()
             }

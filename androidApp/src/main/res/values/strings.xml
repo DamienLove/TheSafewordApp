@@ -11,7 +11,14 @@
     <string name="incoming_mode">Incoming Mode</string>
     <string name="outgoing_mode">Outgoing Mode</string>
     <string name="include_location">Include Location</string>
-    <string name="play_siren">Play Siren</string>
+    <string name="settings_alerts_title">Alert Styles</string>
+    <string name="alert_profile_emergency">Emergency alerts</string>
+    <string name="alert_profile_checkin">Check-in alerts</string>
+    <string name="alert_sound_siren">Siren</string>
+    <string name="alert_sound_gentle">Gentle chime</string>
+    <string name="alert_sound_silent">Silent</string>
+    <string name="alert_override_emergency">Break through Do Not Disturb</string>
+    <string name="alert_override_checkin">Allow check-ins to break through Do Not Disturb</string>
     <string name="test_mode">Test Mode</string>
     <string name="run_test">Run Test</string>
     <string name="save">Save</string>
@@ -118,6 +125,8 @@
     <string name="contact_message_body_non_emergency">Hey %1$s, checking in via SafeWord. No emergency.</string>
     <string name="action_invite_contact">Invite to SafeWord</string>
     <string name="action_gift_contact">Gift SafeWord Pro</string>
+    <string name="shortcut_safe_word_emergency">Trigger SafeWord alert &quot;%1$s&quot;</string>
+    <string name="shortcut_safe_word_checkin">Send SafeWord check-in &quot;%1$s&quot;</string>
     <string name="contact_invite_sent">SafeWord invite sent to %1$s.</string>
     <string name="contact_invite_failed">Could not deliver the SafeWord invite to %1$s. Try again shortly.</string>
     <string name="contact_gift_message_body">Hey %1$s, I am gifting you SafeWord Pro. Install it here: %2$s</string>

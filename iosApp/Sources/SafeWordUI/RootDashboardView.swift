@@ -9,7 +9,6 @@ final class SafeWordRootViewModel: ObservableObject {
     private let updateSafeWordsUseCase: SharedUpdateSafeWordsUseCase
     private let updateSensitivityUseCase: SharedUpdateSensitivityUseCase
     private let toggleIncludeLocationUseCase: SharedToggleIncludeLocationUseCase
-    private let togglePlaySirenUseCase: SharedTogglePlaySirenUseCase
     private let stateAdapter: SharedStateFlowAdapter
     private var dashboardJob: SharedJob?
     private var applyingState = false
@@ -18,7 +17,6 @@ final class SafeWordRootViewModel: ObservableObject {
     @Published var safeWordTwo: String = ""
     @Published var sensitivity: Double = 50
     @Published var includeLocation: Bool = true
-    @Published var playSiren: Bool = false
     @Published var listeningEnabled: Bool = false
     @Published var peerStatus: String = "Idle"
     @Published var contactsCount: Int = 0
@@ -29,7 +27,6 @@ final class SafeWordRootViewModel: ObservableObject {
         updateSafeWordsUseCase = SharedUpdateSafeWordsUseCase(settingsGateway: container.settingsGateway)
         updateSensitivityUseCase = SharedUpdateSensitivityUseCase(settingsGateway: container.settingsGateway)
         toggleIncludeLocationUseCase = SharedToggleIncludeLocationUseCase(settingsGateway: container.settingsGateway)
-        togglePlaySirenUseCase = SharedTogglePlaySirenUseCase(settingsGateway: container.settingsGateway)
         stateAdapter = container.engine.dashboardAdapter(scope: container.coroutineScope)
 
         if let current = stateAdapter.current() as? SharedDashboardState {
@@ -68,11 +65,6 @@ final class SafeWordRootViewModel: ObservableObject {
         toggleIncludeLocationUseCase.invoke(include: enabled) { _, _ in }
     }
 
-    func updatePlaySiren(enabled: Bool) {
-        guard !applyingState else { return }
-        togglePlaySirenUseCase.invoke(play: enabled) { _, _ in }
-    }
-
     func runTest() {
         container.engine.runTest(completionHandler: { _ in })
         SiriShortcuts.donateTriggerTest()
@@ -87,7 +79,6 @@ final class SafeWordRootViewModel: ObservableObject {
             safeWordTwo = settings.safeWordTwo
             sensitivity = Double(settings.sensitivity.intValue)
             includeLocation = settings.includeLocation.boolValue
-            playSiren = settings.playSiren.boolValue
             listeningEnabled = settings.listeningEnabled.boolValue
         }
         if let contacts = state.contacts {
@@ -127,10 +118,6 @@ struct RootDashboardView: View {
                     Toggle("Include location", isOn: .includeLocation)
                         .onChange(of: viewModel.includeLocation) { value in
                             viewModel.updateIncludeLocation(enabled: value)
-                        }
-                    Toggle("Play siren", isOn: .playSiren)
-                        .onChange(of: viewModel.playSiren) { value in
-                            viewModel.updatePlaySiren(enabled: value)
                         }
                     Toggle("Listening", isOn: .listeningEnabled)
                         .onChange(of: viewModel.listeningEnabled) { value in

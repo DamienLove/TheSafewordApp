@@ -18,6 +18,6 @@ enum class AlertSource {
     VOICE,
     SMS,
     TEST,
-    PEER
+    PEER,
+    ASSISTANT
 }
-

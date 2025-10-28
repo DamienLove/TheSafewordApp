@@ -3,13 +3,27 @@ package com.safeword.shared.domain.model
 import kotlinx.serialization.Serializable
 
 @Serializable
+enum class AlertSound {
+    SILENT,
+    GENTLE,
+    SIREN
+}
+
+@Serializable
+data class AlertProfile(
+    val sound: AlertSound = AlertSound.SIREN,
+    val boostRinger: Boolean = true
+)
+
+@Serializable
 data class SafeWordSettings(
     val safeWordOne: String,
     val safeWordTwo: String,
     val sensitivity: Int,
     val listeningEnabled: Boolean,
     val includeLocation: Boolean,
-    val playSiren: Boolean,
+    val emergencyAlert: AlertProfile = AlertProfile(),
+    val nonEmergencyAlert: AlertProfile = AlertProfile(sound = AlertSound.GENTLE, boostRinger = false),
     val testMode: Boolean
 ) {
     init {

@@ -8,6 +8,7 @@ import com.safeword.shared.domain.model.ContactLinkStatus
 import com.safeword.shared.domain.model.PlanTier
 import com.safeword.shared.domain.usecase.ToggleListeningUseCase
 import com.safeword.shared.domain.usecase.ToggleTestModeUseCase
+import com.safeword.util.AssistantShortcutUpdater
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -20,11 +21,13 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val engine: SafeWordEngine,
     private val toggleListening: ToggleListeningUseCase,
-    private val toggleTestMode: ToggleTestModeUseCase
+    private val toggleTestMode: ToggleTestModeUseCase,
+    private val assistantShortcutUpdater: AssistantShortcutUpdater
 ) : ViewModel() {
 
     val uiState: StateFlow<MainUiState> = engine.dashboardState
         .map { dashboard ->
+            dashboard.settings?.let { assistantShortcutUpdater.update(it) }
             MainUiState(
                 listeningEnabled = dashboard.settings?.listeningEnabled ?: false,
                 safeWordConfigured = dashboard.settings?.isConfigured ?: false,
