@@ -97,3 +97,7 @@ Native safety application delivering on-device "safe word" voice/SMS detection, 
 
 ## License
 Proprietary - internal use only.
+
+### iOS builds
+
+See [docs/ios-build.md](docs/ios-build.md) for generating the iOS XCFramework and running the SwiftUI shell project.
