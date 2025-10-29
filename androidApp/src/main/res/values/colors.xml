@@ -31,6 +31,12 @@
     <color name="glow_start">#2D6BFF</color>
     <color name="glow_end">#06152B</color>
     <color name="accent_teal">#21D1C2</color>
+    <color name="accent_amber">#FFB74D</color>
+    <color name="status_indicator_complete">#1DD1A1</color>
+    <color name="status_indicator_pending">#3B4A5C</color>
+    <color name="contact_action_call">#1DD1A1</color>
+    <color name="contact_action_emergency">#FF4D6D</color>
+    <color name="contact_action_message">#4DACFF</color>
 </resources>
 
 

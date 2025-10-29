@@ -13,7 +13,7 @@ import com.safeword.shared.domain.model.PlanTier
 import com.safeword.shared.domain.model.ContactLinkStatus
 
 class ContactsAdapter(
-    private val onEdit: (Contact) -> Unit,
+    private val onView: (Contact) -> Unit,
     private val onDelete: (Contact) -> Unit,
     private val onCall: (Contact) -> Unit,
     private val onMessage: (Contact) -> Unit,
@@ -44,7 +44,7 @@ class ContactsAdapter(
                 binding.textEmail.visibility = View.VISIBLE
                 binding.textEmail.text = contact.email
             }
-            binding.root.setOnClickListener { onEdit(contact) }
+            binding.root.setOnClickListener { onView(contact) }
             binding.root.setOnLongClickListener {
                 onDelete(contact)
                 true

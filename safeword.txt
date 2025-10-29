@@ -140,5 +140,6 @@ Next Actions
 - Populate the secrets listed above before publishing a GitHub release.
 - For emulator testing, use `adb logcat` to monitor speech triggers and SMS receivers in real time.
 - Supply custom audio under `androidApp/src/main/res/raw/` (`safeword_alert.*` for siren, `safeword_ping.*` for gentle pings) to brand the experience; the app falls back to system tones otherwise.
+- Follow up: per-contact toggles in `ContactDetailActivity` are placeholders until the domain layer exposes contact-level settings, and we still need a real data source for last-known contact location—blockers to revisit first thing tomorrow.
 
 

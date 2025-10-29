@@ -17,6 +17,13 @@ import kotlinx.coroutines.launch
 @AndroidEntryPoint
 class SettingsActivity : AppCompatActivity() {
 
+    enum class FocusSection { LOCATION, ALERTS }
+
+    companion object {
+        const val EXTRA_FOCUS_SECTION = "extra_focus_section"
+    }
+
+
     private lateinit var binding: ActivitySettingsBinding
     private val viewModel: SettingsViewModel by viewModels()
 
@@ -66,6 +73,18 @@ class SettingsActivity : AppCompatActivity() {
         binding.buttonRunTest.setOnClickListener { viewModel.runTest() }
 
         observeSettings()
+
+        val focus = intent.getStringExtra(EXTRA_FOCUS_SECTION)?.let { value ->
+            runCatching { FocusSection.valueOf(value) }.getOrNull()
+        }
+        binding.root.post {
+            when (focus) {
+                FocusSection.LOCATION -> binding.root.smoothScrollTo(0, binding.switchIncludeLocation.top)
+                FocusSection.ALERTS -> binding.root.smoothScrollTo(0, binding.switchEmergencyOverride.top)
+                else -> Unit
+            }
+        }
+
     }
 
     private fun observeSettings() {

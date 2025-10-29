@@ -26,6 +26,7 @@ import com.safeword.databinding.ActivityContactsBinding
 import com.safeword.databinding.DialogContactBinding
 import com.safeword.databinding.DialogMessageSignalBinding
 import com.safeword.shared.domain.model.Contact
+import com.safeword.ui.detail.ContactDetailActivity
 import com.safeword.shared.domain.model.ContactEngagementType
 import com.safeword.shared.domain.model.ContactLinkStatus
 import com.safeword.ui.contacts.ContactsAdapter
@@ -41,6 +42,7 @@ class ContactsActivity : AppCompatActivity() {
     private lateinit var adapter: ContactsAdapter
 
     private var pendingDialogBinding: DialogContactBinding? = null
+    private var pendingContactId: Long? = null
 
     private val pickContactLauncher = registerForActivityResult(ActivityResultContracts.PickContact()) { uri ->
         val binding = pendingDialogBinding ?: return@registerForActivityResult
@@ -73,7 +75,7 @@ class ContactsActivity : AppCompatActivity() {
         supportActionBar?.title = getString(R.string.contacts_title)
 
         adapter = ContactsAdapter(
-            onEdit = { contact -> showContactDialog(contact) },
+            onView = { contact -> openContactDetail(contact) },
             onDelete = { contact -> deleteContact(contact) },
             onCall = { contact -> callContact(contact) },
             onMessage = { contact -> messageContact(contact) },
@@ -89,16 +91,44 @@ class ContactsActivity : AppCompatActivity() {
         binding.fabAddContact.setOnClickListener { showContactDialog(null) }
 
         observeContacts()
+
+        if (intent.getBooleanExtra(EXTRA_OPEN_ADD_DIALOG, false)) {
+            binding.root.post { showContactDialog(null) }
+            intent.removeExtra(EXTRA_OPEN_ADD_DIALOG)
+        }
+
+        pendingContactId = intent.getLongExtra(EXTRA_CONTACT_ID, -1L).takeIf { it > 0 }
+        if (pendingContactId != null) {
+            intent.removeExtra(EXTRA_CONTACT_ID)
+        }
     }
 
     private fun observeContacts() {
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.contacts.collect { adapter.submitList(it) }
+                viewModel.contacts.collect { contacts ->
+                    adapter.submitList(contacts)
+                    pendingContactId?.let { id ->
+                        contacts.firstOrNull { it.id == id }?.let { contact ->
+                            binding.root.post { showContactDialog(contact) }
+                        }
+                        pendingContactId = null
+                    }
+                }
             }
         }
     }
 
+
+    private fun openContactDetail(contact: Contact) {
+        val contactId = contact.id
+        if (contactId == null) {
+            showContactDialog(contact)
+            return
+        }
+        val intent = ContactDetailActivity.createIntent(this, contactId)
+        startActivity(intent)
+    }
     private fun showContactDialog(existing: Contact?) {
         if (!canAddAnotherContact(existing)) return
         val dialogBinding = DialogContactBinding.inflate(LayoutInflater.from(this))
@@ -413,5 +443,10 @@ class ContactsActivity : AppCompatActivity() {
         } else {
             super.onOptionsItemSelected(item)
         }
+    }
+
+    companion object {
+        const val EXTRA_OPEN_ADD_DIALOG = "extra_open_add_dialog"
+        const val EXTRA_CONTACT_ID = "extra_contact_id"
     }
 }

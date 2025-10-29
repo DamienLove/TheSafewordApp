@@ -31,11 +31,15 @@ import com.safeword.service.EmergencyHandlerService
 import com.safeword.service.SafeWordPeerService
 import com.safeword.service.VoiceRecognitionService
 import com.safeword.shared.domain.model.AlertSource
+import com.safeword.shared.domain.model.Contact
+import com.safeword.shared.domain.model.ContactEngagementType
 import com.safeword.ui.main.MainDestination
 import com.safeword.ui.main.MainScreen
 import com.safeword.ui.main.MainViewModel
+import com.safeword.ui.detail.ContactDetailActivity
 import com.safeword.ui.onboarding.OnboardingActivity
 import com.safeword.ui.theme.SafeWordTheme
+import com.safeword.ui.SettingsActivity
 import com.safeword.util.OnboardingPreferences
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
@@ -97,9 +101,17 @@ class MainActivity : ComponentActivity() {
                     adsEnabled = BuildConfig.FEATURE_ADS_ENABLED,
                     onCloseAd = { clearNativeAd() },
                     onToggleListening = { toggleListeningState(uiState.listeningEnabled) },
+                    onAddContact = { openAddContact() },
+                    onOpenLocation = { openLocationQuickAction() },
+                    onOpenAlerts = { openAlertsQuickAction() },
+                    onOpenSettingsShortcut = { launchSettings() },
                     onNavigate = { destination -> handleNavigation(destination) },
                     onUpgradeToPro = { launchUpgradeFlow() },
                     onGiftPro = { launchGiftFlow() },
+                    onNavigateToContacts = { openContactsList() },
+                    onContactSelected = { contact -> openContactDetail(contact) },
+                    onContactCall = { contact, emergency -> handleContactCall(contact, emergency) },
+                    onContactMessage = { contact -> handleContactMessage(contact) },
                     onBindNativeAdView = { ad, binding -> populateNativeAdView(ad, binding) }
                 )
             }
@@ -151,10 +163,100 @@ class MainActivity : ComponentActivity() {
                 false
             }
             MainDestination.Settings -> {
-                startActivity(Intent(this, SettingsActivity::class.java))
+                launchSettings()
                 false
             }
         }
+    }
+
+
+    private fun openContactsList() {
+        startActivity(Intent(this, ContactsActivity::class.java))
+    }
+
+    private fun openAddContact() {
+        val intent = Intent(this, ContactsActivity::class.java).apply {
+            putExtra(ContactsActivity.EXTRA_OPEN_ADD_DIALOG, true)
+        }
+        startActivity(intent)
+    }
+
+    private fun openContactDetail(contact: Contact) {
+        val contactId = contact.id
+        if (contactId == null) {
+            openAddContact()
+            return
+        }
+        val intent = ContactDetailActivity.createIntent(this, contactId)
+        startActivity(intent)
+    }
+
+    private fun openLocationQuickAction() {
+        launchSettings(SettingsActivity.FocusSection.LOCATION)
+    }
+
+    private fun openAlertsQuickAction() {
+        launchSettings(SettingsActivity.FocusSection.ALERTS)
+    }
+
+    private fun launchSettings(focus: SettingsActivity.FocusSection? = null) {
+        val intent = Intent(this, SettingsActivity::class.java)
+        focus?.let { intent.putExtra(SettingsActivity.EXTRA_FOCUS_SECTION, it.name) }
+        startActivity(intent)
+    }
+
+    private fun handleContactCall(contact: Contact, emergency: Boolean) {
+        if (contact.phone.isBlank()) {
+            lifecycleScope.launch {
+                snackbarHostState.showSnackbar(getString(R.string.contact_gift_missing_phone))
+            }
+            return
+        }
+
+        viewModel.sendContactSignal(contact, ContactEngagementType.CALL, emergency, null) { sent ->
+            lifecycleScope.launch {
+                val messageRes = if (sent) R.string.contact_signal_sent else R.string.contact_signal_not_sent
+                snackbarHostState.showSnackbar(getString(messageRes, contact.name))
+            }
+        }
+
+        val dialIntent = Intent(Intent.ACTION_DIAL).apply {
+            data = Uri.parse("tel:${contact.phone}")
+        }
+        runCatching { startActivity(dialIntent) }
+            .onFailure {
+                lifecycleScope.launch {
+                    snackbarHostState.showSnackbar(getString(R.string.contact_action_error))
+                }
+            }
+    }
+
+    private fun handleContactMessage(contact: Contact) {
+        if (contact.phone.isBlank()) {
+            lifecycleScope.launch {
+                snackbarHostState.showSnackbar(getString(R.string.contact_gift_missing_phone))
+            }
+            return
+        }
+
+        val messageBody = getString(R.string.contact_message_body, contact.name)
+        viewModel.sendContactSignal(contact, ContactEngagementType.TEXT, false, messageBody) { sent ->
+            lifecycleScope.launch {
+                val messageRes = if (sent) R.string.contact_signal_sent else R.string.contact_signal_not_sent
+                snackbarHostState.showSnackbar(getString(messageRes, contact.name))
+            }
+        }
+
+        val smsIntent = Intent(Intent.ACTION_SENDTO).apply {
+            data = Uri.parse("smsto:${contact.phone}")
+            putExtra("sms_body", messageBody)
+        }
+        runCatching { startActivity(smsIntent) }
+            .onFailure {
+                lifecycleScope.launch {
+                    snackbarHostState.showSnackbar(getString(R.string.contact_action_error))
+                }
+            }
     }
 
     private fun toggleListeningState(isCurrentlyListening: Boolean) {
