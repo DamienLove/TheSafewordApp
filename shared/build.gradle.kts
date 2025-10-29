@@ -1,10 +1,14 @@
 import org.gradle.api.tasks.compile.JavaCompile
+import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinNativeTarget
+import org.jetbrains.kotlin.gradle.plugin.mpp.apple.XCFramework
 
 plugins {
     kotlin("multiplatform")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.android.library")
 }
+
+val sharedXcFramework = XCFramework("Shared")
 
 kotlin {
     androidTarget {
@@ -17,6 +21,14 @@ kotlin {
     iosX64()
     iosArm64()
     iosSimulatorArm64()
+
+    targets.withType<KotlinNativeTarget>().configureEach {
+        binaries.framework {
+            baseName = "Shared"
+            isStatic = true
+            sharedXcFramework.add(this)
+        }
+    }
 
     sourceSets {
         val commonMain by getting {
