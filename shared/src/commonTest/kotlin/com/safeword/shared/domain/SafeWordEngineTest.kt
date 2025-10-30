@@ -1,4 +1,4 @@
-can package com.safeword.shared.domain
+package com.safeword.shared.domain
 
 import com.safeword.shared.bridge.PeerBridge
 import com.safeword.shared.bridge.model.PeerBridgeEvent
@@ -63,14 +63,38 @@ class SafeWordEngineTest {
         }
     }
 
-    private class TestEnvironment(sendSmsResult: Int) {
+    @Test
+    fun sendCheckInBootstrapsLinkForUnlinkedContacts() = runBlocking {
+        val environment = TestEnvironment(sendSmsResult = 1, linkStatus = ContactLinkStatus.UNLINKED)
+        try {
+            environment.awaitDashboardReady()
+
+            val result = environment.engine.sendCheckIn(environment.contact)
+
+            assertFalse(result, "Ping should report failure while SafeWord re-establishes the link.")
+            assertEquals(2, environment.dispatcher.sentMessages.size, "Ping plus link invite should be emitted.")
+            assertTrue(
+                environment.dispatcher.linkNotifications.any { (_, message) ->
+                    message.contains("invite", ignoreCase = true)
+                },
+                "Sender should be notified that a link invite was sent."
+            )
+        } finally {
+            environment.close()
+        }
+    }
+
+    private class TestEnvironment(
+        sendSmsResult: Int,
+        linkStatus: ContactLinkStatus = ContactLinkStatus.LINKED
+    ) {
         val contact: Contact = Contact(
             id = 1L,
             name = "Casey Jones",
             phone = "+15551234567",
             email = null,
             createdAtMillis = 0L,
-            linkStatus = ContactLinkStatus.LINKED,
+            linkStatus = linkStatus,
             planTier = PlanTier.FREE
         )
 
@@ -164,6 +188,7 @@ class SafeWordEngineTest {
         private val sendSmsResult: Int
     ) : EmergencyDispatcher {
         val sentMessages = mutableListOf<String>()
+        val linkNotifications = mutableListOf<Pair<String, String>>()
 
         override suspend fun raiseRinger() = Unit
 
@@ -184,7 +209,9 @@ class SafeWordEngineTest {
 
         override suspend fun showCheckInPrompt(contactName: String, message: String) = Unit
 
-        override suspend fun showLinkNotification(contactName: String, message: String) = Unit
+        override suspend fun showLinkNotification(contactName: String, message: String) {
+            linkNotifications += contactName to message
+        }
 
         override suspend fun logEvent(event: AlertEvent) = Unit
     }
