@@ -108,6 +108,7 @@ class ContactDetailActivity : AppCompatActivity() {
         }
         binding.buttonUnlink.isVisible = isLinked
         binding.buttonPing.isEnabled = isLinked
+        binding.buttonPing.contentDescription = getString(R.string.contact_ping_content_description)
 
         val canGift = !BuildConfig.FEATURE_ADS_ENABLED
         val showInvite = contact.linkStatus == ContactLinkStatus.UNLINKED
@@ -142,8 +143,12 @@ class ContactDetailActivity : AppCompatActivity() {
 
     private fun pingContact(contact: Contact) {
         viewModel.ping(contact) { success ->
-            val res = if (success) R.string.contact_ping_prompt else R.string.contact_ping_unavailable
-            Snackbar.make(binding.root, getString(res, contact.name), Snackbar.LENGTH_SHORT).show()
+            val message = if (success) {
+                getString(R.string.contact_ping_prompt, contact.name)
+            } else {
+                getString(R.string.contact_ping_unavailable)
+            }
+            Snackbar.make(binding.root, message, Snackbar.LENGTH_SHORT).show()
         }
     }
 

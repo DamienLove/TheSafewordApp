@@ -126,19 +126,12 @@ class SafeWordEngine(
     }
 
     suspend fun sendCheckIn(contact: Contact): Boolean {
-        val state = dashboardState.value.bridgeState
-        if (state !is PeerBridgeState.Connected || state.peerCount <= 0) {
-            return false
-        }
-        val timestamp = timeProvider.nowMillis()
-        val event = PeerBridgeEvent.CheckIn(
-            contactName = contact.name,
-            contactPhone = contact.phone,
-            message = "Check in request for ${contact.name}",
-            timestampMillis = timestamp
+        return sendContactSignal(
+            contact = contact,
+            type = ContactEngagementType.PING,
+            emergency = false,
+            message = null
         )
-        peerBridge.broadcast(event)
-        return true
     }
 
     @OptIn(ExperimentalEncodingApi::class)
@@ -190,6 +183,7 @@ class SafeWordEngine(
                 }
             }
             ContactEngagementType.INVITE -> buildInviteMessage()
+            ContactEngagementType.PING -> "Ping from SafeWord.$locationLink"
         }
         val body = buildString {
             append(CONTACT_SIGNAL_PREFIX)
@@ -198,7 +192,11 @@ class SafeWordEngine(
             append('\n')
             append(friendly)
         }
-        val expectAck = type != ContactEngagementType.INVITE
+        val expectAck = when (type) {
+            ContactEngagementType.INVITE,
+            ContactEngagementType.PING -> false
+            else -> true
+        }
         val deferred = if (expectAck) CompletableDeferred<Boolean>() else null
         if (deferred != null) {
             pendingMutex.withLock { pendingSignals[sessionId] = deferred }
@@ -445,16 +443,20 @@ class SafeWordEngine(
             }
         }
 
-        val descriptor = if (emergency) {
-            "Emergency ${type?.name?.lowercase() ?: "message"}"
-        } else {
-            "Check-in ${type?.name?.lowercase() ?: "message"}"
+        val descriptor = when {
+            type == ContactEngagementType.PING -> "Ping"
+            emergency -> "Emergency ${type?.name?.lowercase() ?: "message"}"
+            else -> "Check-in ${type?.name?.lowercase() ?: "message"}"
         }
         val alertProfile = if (emergency) settingsSnapshot.emergencyAlert else settingsSnapshot.nonEmergencyAlert
         applyAlertProfile(alertProfile)
         val locationText = if (lat != null && lon != null) "\nhttps://maps.google.com/?q=$lat,$lon" else ""
         val prompt = when (type) {
             ContactEngagementType.INVITE -> buildInviteReceivedMessage(resolved.name, planTier)
+            ContactEngagementType.PING -> buildString {
+                append("Ping from ${resolved.name}.")
+                append(locationText)
+            }
             else -> buildString {
                 append("$descriptor from ${resolved.name}.")
                 if (messageText != null) {
