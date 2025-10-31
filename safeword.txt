@@ -2,7 +2,12 @@ SafeWord Delivery Notes
 =======================
 
 
-Last updated: 2025-10-28 (post-alert-profile rollout)
+Last updated: 2025-10-31 (issue 20 escalation)
+
+Critical Freeze (2025-10-31)
+----------------------------
+- Issue 20 (contact link/ping regression) is unresolved. Effective immediately, we cannot move forward with any additional work (including UI redesign) until this defect is fully fixed.
+- If Issue 20 is not resolved and validated by November 3, 2025, the SafeWord project will be shut down and no further effort will be invested in this product or topic.
 
 Environment Setup
 -----------------
