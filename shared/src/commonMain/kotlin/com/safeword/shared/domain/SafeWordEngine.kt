@@ -141,9 +141,9 @@ class SafeWordEngine(
         emergency: Boolean,
         message: String? = null
     ): Boolean {
-        val settings = dashboardState.value.settings ?: return false
+        if (type != ContactEngagementType.INVITE && contact.linkStatus != ContactLinkStatus.LINKED) return false
         if (contact.phone.isBlank()) return false
-        val needsLinkBootstrap = contact.linkStatus == ContactLinkStatus.UNLINKED
+        val settings = dashboardState.value.settings ?: return false
         val timestamp = timeProvider.nowMillis()
         val includeLocation = settings.includeLocation && type != ContactEngagementType.INVITE
         val location = if (includeLocation) dispatcher.resolveLocation() else null
@@ -193,48 +193,24 @@ class SafeWordEngine(
             append('\n')
             append(friendly)
         }
-        val expectAck = when (type) {
-            ContactEngagementType.INVITE,
-            ContactEngagementType.PING -> false
-            else -> true
-        }
+        val expectAck = false // ACK handling disabled for now; messages proceed without waiting
         val deferred = if (expectAck) CompletableDeferred<Boolean>() else null
         if (deferred != null) {
             pendingMutex.withLock { pendingSignals[sessionId] = deferred }
-        }
-        var bootstrapTriggered = false
-        suspend fun triggerBootstrap(reason: LinkBootstrapReason) {
-            if (type == ContactEngagementType.INVITE) return
-            if (bootstrapTriggered) return
-            bootstrapTriggered = true
-            bootstrapLink(contact, reason)
         }
         val sent = dispatcher.sendSms(body, listOf(contact)) > 0
         if (!sent) {
             if (deferred != null) {
                 pendingMutex.withLock { pendingSignals.remove(sessionId)?.cancel() }
             }
-            triggerBootstrap(LinkBootstrapReason.SEND_FAILED)
             return false
         }
-        if (!expectAck) {
-            if (needsLinkBootstrap) {
-                triggerBootstrap(LinkBootstrapReason.UNLINKED_CONTACT)
-                return false
-            }
-            return true
-        }
+        if (!expectAck) return true
         val acknowledged = withTimeoutOrNull(ACK_TIMEOUT_MS) { deferred!!.await() } == true
         if (!acknowledged) {
             pendingMutex.withLock { pendingSignals.remove(sessionId)?.cancel() }
-            triggerBootstrap(LinkBootstrapReason.ACK_TIMEOUT)
-            return false
         }
-        if (needsLinkBootstrap) {
-            triggerBootstrap(LinkBootstrapReason.UNLINKED_CONTACT)
-            return false
-        }
-        return true
+        return acknowledged
     }
 
     suspend fun sendLinkRequest(contact: Contact): Boolean {
@@ -539,35 +515,6 @@ class SafeWordEngine(
         private const val TYPE_LINK_RESPONSE = "LINK_RESPONSE"
     }
 
-    private enum class LinkBootstrapReason {
-        UNLINKED_CONTACT,
-        ACK_TIMEOUT,
-        SEND_FAILED
-    }
-
-    private suspend fun bootstrapLink(contact: Contact, reason: LinkBootstrapReason) {
-        val linkRequested = sendForcedLinkRequest(contact)
-        val message = when (reason) {
-            LinkBootstrapReason.UNLINKED_CONTACT ->
-                "SafeWord is re-establishing your link. An invite has been sent."
-            LinkBootstrapReason.ACK_TIMEOUT ->
-                "SafeWord did not receive confirmation. A new link invite has been sent."
-            LinkBootstrapReason.SEND_FAILED ->
-                "SafeWord could not deliver the message. A link invite has been sent instead."
-        }
-        val detail = if (linkRequested) message else "$message Invite may already be pending."
-        dispatcher.showLinkNotification(contact.name, detail)
-    }
-
-    private suspend fun sendForcedLinkRequest(contact: Contact): Boolean {
-        if (contact.phone.isBlank()) return false
-        val normalized = contact.copy(linkStatus = ContactLinkStatus.UNLINKED)
-        val sent = sendLinkSignal(normalized, TYPE_LINK_REQUEST)
-        if (sent) {
-            contactRepository.upsert(normalized.copy(linkStatus = ContactLinkStatus.LINK_PENDING))
-        }
-        return sent
-    }
 }
 
 data class DashboardState(

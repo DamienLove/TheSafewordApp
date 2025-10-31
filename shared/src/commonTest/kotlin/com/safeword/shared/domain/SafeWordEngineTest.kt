@@ -64,21 +64,48 @@ class SafeWordEngineTest {
     }
 
     @Test
-    fun sendCheckInBootstrapsLinkForUnlinkedContacts() = runBlocking {
-        val environment = TestEnvironment(sendSmsResult = 1, linkStatus = ContactLinkStatus.UNLINKED)
+    fun sendCheckInReturnsFalseWhenContactNotLinked() = runBlocking {
+        val contact = Contact(
+            id = 2L,
+            name = "Alex Rivers",
+            phone = "+15559876543",
+            email = null,
+            createdAtMillis = 0L,
+            linkStatus = ContactLinkStatus.UNLINKED,
+            planTier = PlanTier.FREE
+        )
+        val environment = TestEnvironment(sendSmsResult = 1, contactOverride = contact)
         try {
             environment.awaitDashboardReady()
 
             val result = environment.engine.sendCheckIn(environment.contact)
 
-            assertFalse(result, "Ping should report failure while SafeWord re-establishes the link.")
-            assertEquals(2, environment.dispatcher.sentMessages.size, "Ping plus link invite should be emitted.")
-            assertTrue(
-                environment.dispatcher.linkNotifications.any { (_, message) ->
-                    message.contains("invite", ignoreCase = true)
-                },
-                "Sender should be notified that a link invite was sent."
-            )
+            assertFalse(result, "Ping should fail when the contact is not linked.")
+            assertTrue(environment.dispatcher.sentMessages.isEmpty(), "No SMS should be emitted for unlinked contacts.")
+        } finally {
+            environment.close()
+        }
+    }
+
+    @Test
+    fun sendCheckInReturnsFalseWhenContactPhoneMissing() = runBlocking {
+        val contact = Contact(
+            id = 3L,
+            name = "Jordan Heart",
+            phone = "",
+            email = null,
+            createdAtMillis = 0L,
+            linkStatus = ContactLinkStatus.LINKED,
+            planTier = PlanTier.FREE
+        )
+        val environment = TestEnvironment(sendSmsResult = 1, contactOverride = contact)
+        try {
+            environment.awaitDashboardReady()
+
+            val result = environment.engine.sendCheckIn(environment.contact)
+
+            assertFalse(result, "Ping should fail when no phone number is available.")
+            assertTrue(environment.dispatcher.sentMessages.isEmpty(), "No SMS should be emitted without a phone number.")
         } finally {
             environment.close()
         }
@@ -86,15 +113,15 @@ class SafeWordEngineTest {
 
     private class TestEnvironment(
         sendSmsResult: Int,
-        linkStatus: ContactLinkStatus = ContactLinkStatus.LINKED
+        contactOverride: Contact? = null
     ) {
-        val contact: Contact = Contact(
+        val contact: Contact = contactOverride ?: Contact(
             id = 1L,
             name = "Casey Jones",
             phone = "+15551234567",
             email = null,
             createdAtMillis = 0L,
-            linkStatus = linkStatus,
+            linkStatus = ContactLinkStatus.LINKED,
             planTier = PlanTier.FREE
         )
 
@@ -188,8 +215,6 @@ class SafeWordEngineTest {
         private val sendSmsResult: Int
     ) : EmergencyDispatcher {
         val sentMessages = mutableListOf<String>()
-        val linkNotifications = mutableListOf<Pair<String, String>>()
-
         override suspend fun raiseRinger() = Unit
 
         override suspend fun playSiren(enabled: Boolean) = Unit
@@ -209,9 +234,7 @@ class SafeWordEngineTest {
 
         override suspend fun showCheckInPrompt(contactName: String, message: String) = Unit
 
-        override suspend fun showLinkNotification(contactName: String, message: String) {
-            linkNotifications += contactName to message
-        }
+        override suspend fun showLinkNotification(contactName: String, message: String) = Unit
 
         override suspend fun logEvent(event: AlertEvent) = Unit
     }
