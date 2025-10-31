@@ -12,6 +12,7 @@ import com.safeword.shared.domain.model.Contact
 import com.safeword.shared.domain.model.ContactLinkStatus
 import com.safeword.shared.domain.repository.ContactRepository
 import com.safeword.shared.domain.usecase.UpsertContactUseCase
+import com.safeword.util.PhoneCanonicalizer
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,23 +35,27 @@ class SafeWordSmsReceiver : BroadcastReceiver() {
 
         val messageBody = messages.joinToString(separator = " ") { it.displayMessageBody }
         val sender = messages.firstOrNull()?.displayOriginatingAddress.orEmpty()
-        val normalisedSender = PhoneNumberUtils.normalizeNumber(sender) ?: sender.filterNot { it.isWhitespace() }
+        val normalisedSender = PhoneCanonicalizer.canonicalize(sender)
+            ?: PhoneNumberUtils.normalizeNumber(sender)
+            ?: sender.filterNot { it.isWhitespace() }
 
         scope.launch {
-            ensureContactForSender(sender, messageBody)
+            ensureContactForSender(normalisedSender, messageBody)
             engine.processSms(messageBody, normalisedSender.takeIf { it.isNotBlank() })
         }
     }
 
     private suspend fun ensureContactForSender(phone: String, message: String) {
         if (phone.isBlank()) return
-        val normalisedPhone = PhoneNumberUtils.normalizeNumber(phone) ?: phone.filterNot { it.isWhitespace() }
-        val existing = contactRepository.findByPhone(normalisedPhone)
+        val canonicalPhone = PhoneCanonicalizer.canonicalize(phone)
+            ?: PhoneNumberUtils.normalizeNumber(phone)
+            ?: phone.filterNot { it.isWhitespace() }
+        val existing = contactRepository.findByPhone(canonicalPhone)
         if (existing != null) {
             if (existing.linkStatus != ContactLinkStatus.LINKED) {
                 runCatching {
                     upsertContactUseCase(existing.copy(linkStatus = ContactLinkStatus.LINKED))
-                }.onFailure { Log.e(TAG, "Failed to upgrade contact link status for $normalisedPhone", it) }
+                }.onFailure { Log.e(TAG, "Failed to upgrade contact link status for $canonicalPhone", it) }
             }
             return
         }
@@ -65,11 +70,11 @@ class SafeWordSmsReceiver : BroadcastReceiver() {
         }
 
         val alias = safeWordNameRegex.find(message)?.groupValues?.getOrNull(1)?.takeIf { it.isNotBlank() }
-        val contactName = alias ?: normalisedPhone
+        val contactName = alias ?: canonicalPhone
         val contact = Contact(
             id = null,
             name = contactName,
-            phone = normalisedPhone,
+            phone = canonicalPhone,
             email = null,
             createdAtMillis = System.currentTimeMillis(),
             linkStatus = ContactLinkStatus.LINKED

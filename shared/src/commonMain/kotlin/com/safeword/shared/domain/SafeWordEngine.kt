@@ -141,7 +141,8 @@ class SafeWordEngine(
         emergency: Boolean,
         message: String? = null
     ): Boolean {
-        if (type != ContactEngagementType.INVITE && contact.linkStatus == ContactLinkStatus.UNLINKED) return false
+        if (type != ContactEngagementType.INVITE && contact.linkStatus != ContactLinkStatus.LINKED) return false
+        if (contact.phone.isBlank()) return false
         val settings = dashboardState.value.settings ?: return false
         val timestamp = timeProvider.nowMillis()
         val includeLocation = settings.includeLocation && type != ContactEngagementType.INVITE
@@ -192,11 +193,7 @@ class SafeWordEngine(
             append('\n')
             append(friendly)
         }
-        val expectAck = when (type) {
-            ContactEngagementType.INVITE,
-            ContactEngagementType.PING -> false
-            else -> true
-        }
+        val expectAck = false // ACK handling disabled for now; messages proceed without waiting
         val deferred = if (expectAck) CompletableDeferred<Boolean>() else null
         if (deferred != null) {
             pendingMutex.withLock { pendingSignals[sessionId] = deferred }
@@ -517,6 +514,7 @@ class SafeWordEngine(
         private const val TYPE_LINK_REQUEST = "LINK_REQUEST"
         private const val TYPE_LINK_RESPONSE = "LINK_RESPONSE"
     }
+
 }
 
 data class DashboardState(

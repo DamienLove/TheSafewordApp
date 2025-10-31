@@ -31,6 +31,7 @@ import com.safeword.shared.domain.model.ContactEngagementType
 import com.safeword.shared.domain.model.ContactLinkStatus
 import com.safeword.ui.contacts.ContactsAdapter
 import com.safeword.ui.contacts.ContactsViewModel
+import com.safeword.util.PhoneCanonicalizer
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.launch
 
@@ -150,7 +151,8 @@ class ContactsActivity : AppCompatActivity() {
             .setPositiveButton(R.string.save) { dialog, _ ->
                 val name = dialogBinding.inputName.text?.toString().orEmpty()
                 val rawPhone = dialogBinding.inputPhone.text?.toString().orEmpty()
-                val phone = PhoneNumberUtils.normalizeNumber(rawPhone) ?: rawPhone
+                val canonicalPhone = PhoneCanonicalizer.canonicalize(rawPhone)
+                val phone = canonicalPhone ?: PhoneNumberUtils.normalizeNumber(rawPhone) ?: rawPhone
                 val email = dialogBinding.inputEmail.text?.toString()
                 val linkStatus = existing?.linkStatus ?: ContactLinkStatus.UNLINKED
                 val contact = Contact(
@@ -230,7 +232,9 @@ class ContactsActivity : AppCompatActivity() {
                     val number = phones.getString(
                         phones.getColumnIndexOrThrow(ContactsContract.CommonDataKinds.Phone.NUMBER)
                     )
-                    val normalisedNumber = PhoneNumberUtils.normalizeNumber(number) ?: number
+                    val normalisedNumber = PhoneCanonicalizer.canonicalize(number)
+                        ?: PhoneNumberUtils.normalizeNumber(number)
+                        ?: number
                     dialogBinding.inputName.setText(displayName)
                     dialogBinding.inputPhone.setText(normalisedNumber)
                     Snackbar.make(binding.root, R.string.contact_import_success, Snackbar.LENGTH_SHORT).show()
